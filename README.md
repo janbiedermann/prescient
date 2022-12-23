@@ -1,6 +1,6 @@
 # pres**ci**ent
 
-A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~140 lines of bash.
+A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~150 lines of bash.
 
 ## System Requirements
 
