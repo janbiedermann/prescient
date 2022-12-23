@@ -5,6 +5,10 @@ pwd=`pwd`
 repo=${pwd:${#HOME}}
 while read oval commit ref
 do
+  if [ '0000000000000000000000000000000000000000' == "$commit" ]
+  then
+    continue
+  fi
   # try to get .prescient from tree
   tmp_dir=`mktemp -d /tmp/prescient-XXXXX`
   GIT_WORKING_DIR="${tmp_dir}/tree"
