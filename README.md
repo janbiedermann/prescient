@@ -102,3 +102,12 @@ The execution log will be copied to the git server(s) `/var/lib/prescient` direc
 
 - use '/' for paths also on Windows
 - machine names (first item of /etc/prescient.conf) must match the pattern [a-zA-Z0-9_-]+
+- Apache 2 config snippet for serving result logs from `/var/lib/prescient`:
+```
+Alias /prescient/ "/data/prescient/"
+<Directory "/data/prescient/">
+   AllowOverride None
+   Options Indexes
+   Require all granted
+</Directory>
+```
