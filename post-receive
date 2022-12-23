@@ -101,11 +101,11 @@ do
     echo '  while [ -z "$started" ]' >> $script_tmp
     echo '  do' >> $script_tmp
     echo '    sleep 10'  >> $script_tmp
-    echo '    started=`'"sshpass -p $vm_user_pass ssh -l $vm_user -p 2222 127.0.0.1 'echo started' 2>/dev/null"'`' >> $script_tmp
+    echo '    started=`'"sshpass -p $vm_user_pass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l $vm_user -p 2222 127.0.0.1 'echo started' 2>/dev/null"'`' >> $script_tmp
     echo '  done' >> $script_tmp
-    echo "  sshpass -p $vm_user_pass scp -P 2222 ~/.prescient/${cm}.zip ${vm_user}@127.0.0.1:/home/${vm_user}/ " >> $script_tmp
-    echo "  sshpass -p $vm_user_pass ssh -l $vm_user -p 2222 127.0.0.1 /usr/bin/unzip -q -d \"/home/${vm_user}/\" \"/home/${vm_user}/${cm}.zip\"" >> $script_tmp
-    echo "  sshpass -p $vm_user_pass ssh -l $vm_user -p 2222 127.0.0.1 /bin/bash -c \"cd /home/${vm_user}/tree/ && /home/${vm_user}/tree/"'$exe'"\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
+    echo "  sshpass -p $vm_user_pass scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 2222 ~/.prescient/${cm}.zip ${vm_user}@127.0.0.1:/home/${vm_user}/ " >> $script_tmp
+    echo "  sshpass -p $vm_user_pass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l $vm_user -p 2222 127.0.0.1 /usr/bin/unzip -q -d \"/home/${vm_user}/\" \"/home/${vm_user}/${cm}.zip\"" >> $script_tmp
+    echo "  sshpass -p $vm_user_pass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l $vm_user -p 2222 127.0.0.1 /bin/bash -c \"cd /home/${vm_user}/tree/ && /home/${vm_user}/tree/"'$exe'"\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
     echo 'fi' >> $script_tmp
     # move log
     echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script_tmp
