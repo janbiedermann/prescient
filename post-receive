@@ -113,8 +113,8 @@ do
     echo 'fi' >> $script_tmp
     # move log
     echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script_tmp
-    # shutdown vm
-    echo "vboxmanage controlvm $ci_vm shutdown --force" >> $script_tmp
+    # shutdown
+    echo "vboxmanage controlvm '$ci_vm' poweroff" >> $script_tmp
     echo "running='running'" >> $script_tmp
     echo 'while [ -n "$running" ]' >> $script_tmp
     echo 'do' >> $script_tmp
