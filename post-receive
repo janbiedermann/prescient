@@ -15,7 +15,11 @@ do
   mkdir ${GIT_WORKING_DIR}
   GWD_PRESCIENT="${GIT_WORKING_DIR}/.prescient"
   git clone $GIT_DIR $GIT_WORKING_DIR >/dev/null 2>/dev/null
-  git --git-dir=$GIT_DIR --work-tree=$GIT_WORKING_DIR checkout $commit >/dev/null 2>/dev/null
+  unset GIT_DIR
+  cwd=`pwd`
+  cd $GIT_WORKING_DIR
+  git checkout $commit >/dev/null 2>/dev/null
+  cd $cwd
 
   if [ ! -f $GWD_PRESCIENT ]
   then
