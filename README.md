@@ -1,13 +1,12 @@
 # pres**ci**ent
 
-A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~150 lines of bash.
+A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~160 lines of bash.
 
 ## System Requirements
 
 - VirtualBox on one or more *nixish hosts
 - Git on one or more *nixish hosts, acting as git server(s)
-- ssh for public key access and command execution
-- bash, at, zip, unzip
+- bash, at, zip, unzip, ssh, sshpass
 - [nq](https://github.com/leahneukirchen/nq)
 
 ## Installation and Configuration
@@ -17,14 +16,34 @@ A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~15
 - install nq, probably something like `apt install nq`
 - install VirtualBox
 - install unzip
+- install sshpass
 - configure a user for running the virtual machines
 - ensure the git server(s) can access the executing host and login via ssh and manage the virtual machines
+- Port 2222 must be free, will be used 
 
 ### Virtual Machines on the Executing Hosts
 
-- install OS according to your requirements
-- on *nixish vms, the vm users home directory must be in /home/ and bash must be available at /bin/bash
-- on Windows vms, the vm users home directory must be in C:/Users/
+#### Windows
+
+- configure the first network interface as NAT
+- install VirtualBox Guest Utilities
+- the vm users home directory must be in C:/Users/
+ 
+#### Linux
+
+- configure the first network interface as NAT
+- install VirtualBox Guest Utilities
+- the vm users home directory must be in /home/
+- bash must be available at /bin/bash
+- unzip must be available at /usr/bin/unzip
+
+#### BSD and others
+
+- configure the first network interface as NAT
+- install and configure sshd, make sure the host user can login
+- the vm users home directory must be in /home/
+- bash must be available at /bin/bash
+- unzip must be available at /usr/bin/unzip
 
 ### Git server(s)
 
