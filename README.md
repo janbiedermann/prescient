@@ -106,6 +106,8 @@ The script will be called with the name of original VM and name the currently ru
 
 `./prescient/Windows10 Windows10 Windows10_Prescient vm_user vm_user_pass`
 
+In the contrib directory of this repo are a few example plugin script.
+
 ## Execution log
 
 The execution log will be copied to the git server(s) `/var/lib/prescient` directory named after the repo, commit and machine, eg: `/var/lib/prescient/my_repo.gi/d5660703f412dc854f8548b845b34eafe0ca3e6e_machine.log`

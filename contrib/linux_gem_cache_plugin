@@ -1,0 +1,60 @@
+#!/bin/bash
+vm=$1
+ci_vm=$2
+vm_user=$3
+vm_user_pass=$4
+started=''
+av_g="${HOME}/.prescient/${vm}_gems"
+wa_g="${HOME}/.prescient/${vm}_wanted_gems"
+
+function start_vm() {
+  vboxmanage startvm $vm --type=headless
+  while [ -z "$started" ]; do
+    sleep 10
+    started=`vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c 'echo started' 2>/dev/null`
+  done
+}
+
+function vm_gem_list() {
+  vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c "cd /home/${vm_user} && gem list -l" | tail -n +4 > "$av_g"
+}
+
+
+function stop_vm() {
+  shutdown=`vboxmanage controlvm "$vm" shutdown 2>&1`
+  while [ -n "$shutdown" ]; do
+    sleep 10
+    vboxmanage controlvm "$vm" shutdown
+  done
+}
+
+if [ ! -f "$av_g" ]; then
+  echo "Getting gems installed on '$vm'."
+  start_vm
+  vm_gem_list
+  stop_vm
+fi
+
+echo "Getting gems installed on '$ci_vm'."
+vboxmanage guestcontrol "$ci_vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c "cd /home/${vm_user} && gem list -l" | tail -n +4 > "$wa_g"
+
+if cmp -s "$av_g" "$wa_g"; then
+  echo "Identical gems installed on '$vm' and '$ci_vm'."
+else
+  echo "Updating gems on '$vm'."
+  start_vm
+  while read -r gem_spec; do
+    installed=`grep "$gem_spec" "$av_g"`
+    if [ -z "$installed" ]; then
+      gem=`echo "$gem_spec" | awk '{print $1}'`
+      versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
+      installed=`grep "$gem" "$av_g"`
+      for version in $versions; do
+        echo "Installing $gem $version [ $gem_spec | $installed ]"
+        vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c "cd /home/${vm_user} && gem install -v $version $gem"
+      done
+    fi
+  done < "$wa_g"
+  vm_gem_list
+  stop_vm
+fi
