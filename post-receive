@@ -89,7 +89,7 @@ while read oval commit ref; do
     echo '  done' >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' copyto --username=$vm_user --password=$vm_user_pass --recursive --target-directory=\"/home/${vm_user}/\" ~/.prescient/${cm}.zip" >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='/usr/bin/unzip' -- unzip -q -d \"/home/${vm_user}/\" \"/home/${vm_user}/${cm}.zip\"" >> $script_tmp
-    echo '  vboxmanage guestcontrol "'$ci_vm'" run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe="/bin/bash" -- bash -c "cd /home/'${vm_user}'/tree/ && $exe" >~/.prescient/'$cm'.log_tmp 2>&1' >> $script_tmp
+    echo '  vboxmanage guestcontrol "'$ci_vm'" run --username='$vm_user' --password='$vm_user_pass' --timeout=3000000 --exe="/bin/bash" -- bash -c "cd /home/'$vm_user'/tree/ && $exe" >~/.prescient/'$cm'.log_tmp 2>&1' >> $script_tmp
     echo 'elif [ -n "$win" ]; then' >> $script_tmp
     # Windows
     echo '  while [ -z "$started" ]; do' >> $script_tmp
@@ -98,7 +98,7 @@ while read oval commit ref; do
     echo '  done' >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' copyto --username=$vm_user --password=$vm_user_pass --recursive --target-directory=\"C:/Users/${vm_user}/\" ~/.prescient/$cm.zip" >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe' -- powershell.exe -Command Expand-Archive -Path \"C:/Users/${vm_user}/${cm}.zip\" -DestinationPath \"C:/Users/${vm_user}/\"" >> $script_tmp
-    echo '  vboxmanage guestcontrol "'$ci_vm'" run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe="C:/Windows/system32/cmd.exe" -- cmd.exe /C "cd C:/Users/'${vm_user}'/tree && $exe" >~/.prescient/'$cm'.log_tmp 2>&1' >> $script_tmp
+    echo '  vboxmanage guestcontrol "'$ci_vm'" run --username='$vm_user' --password='$vm_user_pass' --timeout=3000000 --exe="C:/Windows/system32/cmd.exe" -- cmd.exe /C "cd C:/Users/'$vm_user'/tree && $exe" >~/.prescient/'$cm'.log_tmp 2>&1' >> $script_tmp
     echo 'else' >> $script_tmp
     # *nixish
     echo '  while [ -z "$started" ]; do' >> $script_tmp
