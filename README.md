@@ -112,3 +112,12 @@ Alias /prescient/ "/data/prescient/"
 </Directory>
 ```
 - running multiple VMs on the same host at the same time can be achieved by using a different host user per VM
+- Scaling up! To run multiple VMs of the same kind on multiple hosts or multiple times at the same host,
+  simply add more lines with the same machine specifier for developers, but vary either host or user or both.
+  The actual VM will be randomly selected at the time of commit.
+```
+windows|ci_host_1|ci_user_1|WindowsVM|vm_user|vm_pass
+windows|ci_host_1|ci_user_2|WindowsVM|vm_user|vm_pass
+windows|ci_host_2|ci_user_1|WindowsVM|vm_user|vm_pass
+windows|ci_host_2|ci_user_2|WindowsVM|vm_user|vm_pass
+```
