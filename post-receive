@@ -37,10 +37,10 @@ do
   machines=`grep -o -E "^[a-zA-Z0-9_-]+" ${GWD_PRESCIENT}`
   for machine in $machines
   do
-    machine_line = `grep "${machine}|" ${PC} | shuf -n 1`
+    machine_line=`grep "${machine}|" ${PC} | shuf -n 1`
     if [ -z "$machine_line" ]
     then
-      echo "Can't enqueue CI run for $commit on '$machine', '$machine' not found!"
+      echo "Can't enqueue CI run for $commit on '$machine'. No machine configuration for '$machine' found!"
       rm -rf $tmp_dir
       continue
     fi
