@@ -1,6 +1,6 @@
 # pres**ci**ent
 
-A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~170 lines of bash.
+A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~180 lines of bash.
 
 ## System Requirements
 
@@ -19,7 +19,7 @@ A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~17
 - install sshpass
 - configure a user for running the virtual machines
 - ensure the git server(s) can access the executing host and login via ssh and manage the virtual machines
-- Port 2222 must be free, will be used 
+- Port 2222 must be free, will be used
 
 ### Virtual Machines on the Executing Hosts
 
@@ -93,6 +93,18 @@ With each push to the git server(s) above, the git hook enqueues the execution o
 - The git repo will copied to the vm
 
 - The command as specified in the `.prescient.conf` file of the repo will be executed from within the checked out repo
+
+### Plugin Scripts
+
+On the executing hosts the scripts will call a "plugin script" if it exists, right after the actual CI script has been executed on the VM.
+The plugin scripts may be used to cache installed software or anything else.
+They must be located in the `~/prescient` directory of the host user and must be named after the VM, example with a VM named 'Windows10':
+
+`~/prescient/Windows10`
+
+The script will be called with the name of original VM and name the currently running VM, like:
+
+`./prescient/Windows10 Windows10 Windows10_Prescient`
 
 ## Execution log
 

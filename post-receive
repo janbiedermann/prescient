@@ -99,7 +99,7 @@ do
     echo '  done' >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' copyto --username=$vm_user --password=$vm_user_pass --recursive --target-directory=\"/home/${vm_user}/\" ~/.prescient/${cm}.zip" >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='/usr/bin/unzip' -- unzip -q -d \"/home/${vm_user}/\" \"/home/${vm_user}/${cm}.zip\"" >> $script_tmp
-    echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='/bin/bash' -- bash -c \"cd /home/${vm_user}/tree/ && /home/${vm_user}/tree/"'$exe'"\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
+    echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='/bin/bash' -- bash -c \"cd /home/${vm_user}/tree/ && '$exe'\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
     echo 'elif [ -n "$win" ]' >> $script_tmp
     echo 'then' >> $script_tmp
     # Windows
@@ -110,7 +110,7 @@ do
     echo '  done' >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' copyto --username=$vm_user --password=$vm_user_pass --recursive --target-directory=\"C:/Users/${vm_user}/\" ~/.prescient/$cm.zip" >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe' -- powershell.exe -Command Expand-Archive -Path \"C:/Users/${vm_user}/${cm}.zip\" -DestinationPath \"C:/Users/${vm_user}/\"" >> $script_tmp
-    echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C \"cd C:/Users/${vm_user}/tree && C:/Users/${vm_user}/tree/"'$exe'"\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
+    echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C \"cd C:/Users/${vm_user}/tree && '$exe'\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
     echo 'else' >> $script_tmp
     # *nixish
     echo '  while [ -z "$started" ]' >> $script_tmp
@@ -120,10 +120,15 @@ do
     echo '  done' >> $script_tmp
     echo "  sshpass -p $vm_user_pass scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 2222 ~/.prescient/${cm}.zip ${vm_user}@127.0.0.1:/home/${vm_user}/ " >> $script_tmp
     echo "  sshpass -p $vm_user_pass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l $vm_user -p 2222 127.0.0.1 /usr/bin/unzip -q -d \"/home/${vm_user}/\" \"/home/${vm_user}/${cm}.zip\"" >> $script_tmp
-    echo "  sshpass -p $vm_user_pass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l $vm_user -p 2222 127.0.0.1 /bin/bash -c \"cd /home/${vm_user}/tree/ && /home/${vm_user}/tree/"'$exe'"\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
+    echo "  sshpass -p $vm_user_pass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l $vm_user -p 2222 127.0.0.1 /bin/bash -c \"cd /home/${vm_user}/tree/ && '$exe'\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
     echo 'fi' >> $script_tmp
     # move log
     echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script_tmp
+    # call plugin if it exists
+    echo "if [ -x './prescient/${vm}']" >> $script_tmp
+    echo 'then' >> $script_tmp
+    echo "  ./prescient/${vm} '${vm}' '${ci_vm}'" >> $script_tmp
+    echo 'fi' >> $script_tmp
     # shutdown
     echo "vboxmanage controlvm '$ci_vm' poweroff" >> $script_tmp
     echo "running='running'" >> $script_tmp
