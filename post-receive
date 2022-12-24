@@ -65,7 +65,7 @@ do
     echo '  exit 1' >> $script_tmp
     echo 'fi' >> $script_tmp
     # clone, if necessary and create base snapshot
-    echo 'running=`echo $state | grep running`'
+    echo 'running=`echo $state | grep running`' >> $script_tmp
     echo 'old_state=`cat "${HOME}/.prescient/'$vm'" 2>/dev/null`' >> $script_tmp
     echo 'if [ -n "$running" ]' >> $script_tmp
     echo 'then' >> $script_tmp
