@@ -3,10 +3,8 @@
 PC="/etc/prescient.conf"
 pwd=`pwd`
 repo=${pwd:${#HOME}}
-while read oval commit ref
-do
-  if [ '0000000000000000000000000000000000000000' == "$commit" ]
-  then
+while read oval commit ref; do
+  if [ '0000000000000000000000000000000000000000' == "$commit" ]; then
     continue
   fi
   # try to get .prescient from tree
@@ -21,8 +19,7 @@ do
   git checkout $commit >/dev/null 2>/dev/null
   cd $cwd
 
-  if [ ! -f $GWD_PRESCIENT ]
-  then
+  if [ ! -f $GWD_PRESCIENT ]; then
     echo "No .prescient file found in tree of ${commit}, cannot enqueue CI run."
     rm -rf $tmp_dir
     continue
@@ -35,11 +32,9 @@ do
   cd $cwd
 
   machines=`grep -o -E "^[a-zA-Z0-9_-]+" ${GWD_PRESCIENT}`
-  for machine in $machines
-  do
+  for machine in $machines; do
     machine_line=`grep "${machine}|" ${PC} | shuf -n 1`
-    if [ -z "$machine_line" ]
-    then
+    if [ -z "$machine_line" ]; then
       echo "Can't enqueue CI run for $commit on '$machine'. No machine configuration for '$machine' found!"
       rm -rf $tmp_dir
       continue
@@ -59,19 +54,16 @@ do
     echo '# set -x' >> $script_tmp
     echo 'state=`vboxmanage showvminfo "'$vm'" 2>/dev/null | grep ^State: | awk '"'"'{$1=""; print substr($0,2)}'"'"'`' >> $script_tmp
     # check if vm exists
-    echo 'if [ -z "$state" ]' >> $script_tmp
-    echo 'then' >> $script_tmp
+    echo 'if [ -z "$state" ]; then' >> $script_tmp
     echo "  echo \"VM '$vm' doesn't exist!\"" >> $script_tmp
     echo '  exit 1' >> $script_tmp
     echo 'fi' >> $script_tmp
     # clone, if necessary and create base snapshot
     echo 'running=`echo $state | grep running`' >> $script_tmp
     echo 'old_state=`cat "${HOME}/.prescient/'$vm'" 2>/dev/null`' >> $script_tmp
-    echo 'if [ -n "$running" ]' >> $script_tmp
-    echo 'then' >> $script_tmp
+    echo 'if [ -n "$running" ]; then' >> $script_tmp
     echo "  echo '$vm is running, not cloning!'" >> $script_tmp
-    echo 'elif [ "$state" != "$old_state" ]' >> $script_tmp
-    echo 'then' >> $script_tmp
+    echo 'elif [ "$state" != "$old_state" ]; then' >> $script_tmp
     echo "  vboxmanage unregistervm '$ci_vm' --delete 2>/dev/null" >> $script_tmp
     echo "  vboxmanage clonevm '$vm' --mode=machine --name='$ci_vm' --register" >> $script_tmp
     echo "  VBoxManage modifyvm '$ci_vm' --nat-pf1 \"prescient_ssh,tcp,127.0.0.1,2222,,22\"" >> $script_tmp
@@ -89,22 +81,18 @@ do
     # check vm OS, copy tree, run command
     echo 'win=`vboxmanage guestproperty get "'$ci_vm'" /VirtualBox/GuestInfo/OS/Product | grep -i windows`' >> $script_tmp
     echo 'lin=`vboxmanage guestproperty get "'$ci_vm'" /VirtualBox/GuestInfo/OS/Product | grep -i Linux`' >> $script_tmp
-    echo 'if [ -n "$lin" ]' >> $script_tmp
-    echo 'then' >> $script_tmp
+    echo 'if [ -n "$lin" ]; then' >> $script_tmp
     # Linux
-    echo '  while [ -z "$started" ]' >> $script_tmp
-    echo '  do' >> $script_tmp
+    echo '  while [ -z "$started" ]; do' >> $script_tmp
     echo '    sleep 10'  >> $script_tmp
     echo '    started=`'"vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c 'echo started' 2>/dev/null"'`' >> $script_tmp
     echo '  done' >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' copyto --username=$vm_user --password=$vm_user_pass --recursive --target-directory=\"/home/${vm_user}/\" ~/.prescient/${cm}.zip" >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='/usr/bin/unzip' -- unzip -q -d \"/home/${vm_user}/\" \"/home/${vm_user}/${cm}.zip\"" >> $script_tmp
     echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='/bin/bash' -- bash -c \"cd /home/${vm_user}/tree/ && '$exe'\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
-    echo 'elif [ -n "$win" ]' >> $script_tmp
-    echo 'then' >> $script_tmp
+    echo 'elif [ -n "$win" ]; then' >> $script_tmp
     # Windows
-    echo '  while [ -z "$started" ]' >> $script_tmp
-    echo '  do' >> $script_tmp
+    echo '  while [ -z "$started" ]; do' >> $script_tmp
     echo '    sleep 10'  >> $script_tmp
     echo '    started=`'"vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C 'echo started' 2>/dev/null"'`' >> $script_tmp
     echo '  done' >> $script_tmp
@@ -113,8 +101,7 @@ do
     echo "  vboxmanage guestcontrol '$ci_vm' run --username=$vm_user --password=$vm_user_pass --timeout=3000000 --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C \"cd C:/Users/${vm_user}/tree && '$exe'\" >~/.prescient/$cm.log_tmp 2>&1" >> $script_tmp
     echo 'else' >> $script_tmp
     # *nixish
-    echo '  while [ -z "$started" ]' >> $script_tmp
-    echo '  do' >> $script_tmp
+    echo '  while [ -z "$started" ]; do' >> $script_tmp
     echo '    sleep 10'  >> $script_tmp
     echo '    started=`'"sshpass -p $vm_user_pass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l $vm_user -p 2222 127.0.0.1 'echo started' 2>/dev/null"'`' >> $script_tmp
     echo '  done' >> $script_tmp
@@ -125,15 +112,13 @@ do
     # move log
     echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script_tmp
     # call plugin if it exists
-    echo "if [ -x './prescient/${vm}']" >> $script_tmp
-    echo 'then' >> $script_tmp
+    echo "if [ -x './prescient/${vm}']; then" >> $script_tmp
     echo "  ./prescient/${vm} '${vm}' '${ci_vm}'" >> $script_tmp
     echo 'fi' >> $script_tmp
     # shutdown
     echo "vboxmanage controlvm '$ci_vm' poweroff" >> $script_tmp
     echo "running='running'" >> $script_tmp
-    echo 'while [ -n "$running" ]' >> $script_tmp
-    echo 'do' >> $script_tmp
+    echo 'while [ -n "$running" ]; do' >> $script_tmp
     echo '  sleep 10'  >> $script_tmp
     echo '  running=`vboxmanage list runningvms | grep '$ci_vm'`' >> $script_tmp
     echo 'done' >> $script_tmp
@@ -141,8 +126,7 @@ do
 
     chmod 700 $script_tmp
     scp -p $script_tmp ${user}@${host}:~/.prescient/${cm}.sh
-    if [ ! $? -eq 0 ]
-    then
+    if [ ! $? -eq 0 ]; then
       ssh ${user}@${host} mkdir '~/.prescient'
       scp -p $script_tmp ${user}@${host}:~/.prescient/${cm}.sh
     fi
@@ -152,8 +136,7 @@ do
 cat << SCRIPT > "${script_tmp}_${machine}"
 mkdir -p /var/lib/prescient${repo}
 scp ${user}@${host}:~/.prescient/${cm}.log /var/lib/prescient${repo}/ 2>/dev/null
-if [ ! -f /var/lib/prescient${repo}/${cm}.log ]
-then
+if [ ! -f /var/lib/prescient${repo}/${cm}.log ]; then
   at -M -f "${script_tmp}_${machine}" now + 2 min
 fi
 exit 0
