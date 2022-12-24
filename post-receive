@@ -41,6 +41,7 @@ do
     if [ -z "$machine_line" ]
     then
       echo "Can't enqueue CI run for $commit on '$machine', '$machine' not found!"
+      rm -rf $tmp_dir
       continue
     fi
     host=`echo $machine_line | awk -F'|' '{print $2}'`
