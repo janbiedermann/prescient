@@ -113,7 +113,7 @@ while read oval commit ref; do
     echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script_tmp
     # call plugin if it exists
     echo "if [ -x './prescient/${vm}']; then" >> $script_tmp
-    echo "  ./prescient/${vm} '${vm}' '${ci_vm}'" >> $script_tmp
+    echo "  ./prescient/${vm} '${vm}' '${ci_vm}' '${vm_user}' '${vm_user_pass}'" >> $script_tmp
     echo 'fi' >> $script_tmp
     # shutdown
     echo "vboxmanage controlvm '$ci_vm' poweroff" >> $script_tmp

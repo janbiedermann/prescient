@@ -102,9 +102,9 @@ They must be located in the `~/prescient` directory of the host user and must be
 
 `~/prescient/Windows10`
 
-The script will be called with the name of original VM and name the currently running VM, like:
+The script will be called with the name of original VM and name the currently running VM, the VM user and password, like:
 
-`./prescient/Windows10 Windows10 Windows10_Prescient`
+`./prescient/Windows10 Windows10 Windows10_Prescient vm_user vm_user_pass`
 
 ## Execution log
 
