@@ -66,7 +66,7 @@ while read oval commit ref; do
     echo 'elif [ "$state" != "$old_state" ]; then' >> $script_tmp
     echo "  vboxmanage unregistervm '$ci_vm' --delete 2>/dev/null" >> $script_tmp
     echo "  vboxmanage clonevm '$vm' --mode=machine --name='$ci_vm' --register" >> $script_tmp
-    echo "  VBoxManage modifyvm '$ci_vm' --nat-pf1 \"prescient_ssh,tcp,127.0.0.1,2222,,22\"" >> $script_tmp
+    echo "  vboxmanage modifyvm '$ci_vm' --nat-pf1 \"prescient_ssh,tcp,127.0.0.1,2222,,22\"" >> $script_tmp
     echo "  vboxmanage snapshot '$ci_vm' take Base" >> $script_tmp
     echo '  echo -n $state > "${HOME}/.prescient/'$vm'"' >> $script_tmp
     echo 'fi' >> $script_tmp
