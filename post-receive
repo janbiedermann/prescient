@@ -25,6 +25,7 @@ while read oval commit ref; do
     continue
   fi
 
+  # prepare repo
   tree_zip="${tmp_dir}/tree.zip"
   cwd=`pwd`
   cd $tmp_dir
@@ -47,7 +48,6 @@ while read oval commit ref; do
     ci_vm="${vm}_Prescient"
     echo "Enqueueing CI run for $commit on '$machine'."
     script_tmp="${tmp_dir}/script"
-
     cm="${commit}_${machine}"
 
     echo '#!/bin/bash' > $script_tmp
@@ -133,23 +133,18 @@ while read oval commit ref; do
     scp $tree_zip ${user}@${host}:~/.prescient/${cm}.zip
     ssh ${user}@${host} nq -c -q '~/.prescient/'${cm}'.sh'
 
-cat << SCRIPT > "${script_tmp}_${machine}"
-mkdir -p /var/lib/prescient${repo}
-scp ${user}@${host}:~/.prescient/${cm}.log /var/lib/prescient${repo}/ 2>/dev/null
-if [ ! -f /var/lib/prescient${repo}/${cm}.log ]; then
-  at -M -f "${script_tmp}_${machine}" now + 2 min
-fi
-exit 0
-SCRIPT
+    echo "mkdir -p /var/lib/prescient${repo}" > "${script_tmp}_${machine}"
+    echo "scp ${user}@${host}:~/.prescient/${cm}.log /var/lib/prescient${repo}/ 2>/dev/null" >> "${script_tmp}_${machine}"
+    echo "if [ ! -f /var/lib/prescient${repo}/${cm}.log ]; then" >> "${script_tmp}_${machine}"
+    echo "  at -M -f '${script_tmp}_${machine}' now + 2 min" >> "${script_tmp}_${machine}"
+    echo 'fi' >> "${script_tmp}_${machine}"
+    echo 'exit 0' >> "${script_tmp}_${machine}"
 
-    chmod 700 "${script_tmp}_${machine}"
     job=`at -M -f "${script_tmp}_${machine}" now + 2 min 2>&1 | tail -1 | awk '{print $2}'`
 
     # cleanup everything for the machine
-cat << SCRIPT > "$tmp_dir/cleanup_${machine}"
-ssh ${user}@${host} rm -rf '~/.prescient/$cm*'
-atrm $job
-SCRIPT
+    echo "ssh ${user}@${host} rm -rf '~/.prescient/$cm*'" > "$tmp_dir/cleanup_${machine}"
+    echo "atrm $job" >> "$tmp_dir/cleanup_${machine}"
 
     at -M -f "$tmp_dir/cleanup_${machine}" now + 12 hours 2>/dev/null
   done
