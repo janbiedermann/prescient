@@ -113,7 +113,7 @@ The execution log will be copied to the git server(s) `/var/lib/prescient` direc
 ## Hints
 
 - use '/' for paths also on Windows
-- machine names (first item of /etc/prescient.conf) must match the pattern [a-zA-Z0-9_-]+
+- machine names for developers (first item of /etc/prescient.conf) must match the pattern [a-zA-Z0-9_-]+
 - Apache 2 config snippet for serving result logs from `/var/lib/prescient`:
 ```
 Alias /prescient/ "/data/prescient/"
@@ -133,3 +133,4 @@ windows|ci_host_1|ci_user_2|WindowsVM|vm_user|vm_pass
 windows|ci_host_2|ci_user_1|WindowsVM|vm_user|vm_pass
 windows|ci_host_2|ci_user_2|WindowsVM|vm_user|vm_pass
 ```
+- to follow and debug VM execution, login to the execution host and use `fq`
