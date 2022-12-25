@@ -19,7 +19,6 @@ function vm_gem_list() {
   vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c "cd /home/${vm_user} && gem list -l" | tail -n +4 > "$av_g"
 }
 
-
 function stop_vm() {
   shutdown=`vboxmanage controlvm "$vm" shutdown 2>&1`
   while [ -n "$shutdown" ]; do
@@ -29,13 +28,13 @@ function stop_vm() {
 }
 
 if [ ! -f "$av_g" ]; then
-  echo "Getting gems installed on '$vm'."
+  echo "Getting gems that are installed on '$vm'."
   start_vm
   vm_gem_list
   stop_vm
 fi
 
-echo "Getting gems installed on '$ci_vm'."
+echo "Getting gems that are installed on '$ci_vm'."
 vboxmanage guestcontrol "$ci_vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c "cd /home/${vm_user} && gem list -l" | tail -n +4 > "$wa_g"
 
 if cmp -s "$av_g" "$wa_g"; then
@@ -48,11 +47,11 @@ else
     if [ -z "$installed" ]; then
       gem=`echo "$gem_spec" | awk '{print $1}'`
       versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
+      installed=`grep "^$gem " "$av_g"`
       for version in $versions; do
-        installed=`grep "^$gem " "$av_g"`
         has=`echo "$installed" | grep "$version"`
         if [ -z "$has" ]; then
-          echo "Installed: ${installed}, Installing: $gem $version"
+          echo "Installed: ${installed}, Installing: ${gem} ${version}, Has: $has"
           vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c "cd /home/${vm_user} && gem install -v $version $gem"
         fi
       done
