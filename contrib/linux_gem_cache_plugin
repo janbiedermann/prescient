@@ -48,10 +48,12 @@ else
     if [ -z "$installed" ]; then
       gem=`echo "$gem_spec" | awk '{print $1}'`
       versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
-      installed=`grep "$gem" "$av_g"`
       for version in $versions; do
-        echo "Installing $gem $version [ $gem_spec | $installed ]"
-        vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c "cd /home/${vm_user} && gem install -v $version $gem"
+        has=`echo "$installed" | grep "$version"`
+        if [ -z "$has" ]; then
+          echo "Installed: ${installed}, Installing: $gem $version"
+          vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='/bin/bash' -- bash -c "cd /home/${vm_user} && gem install -v $version $gem"
+        fi
       done
     fi
   done < "$wa_g"
