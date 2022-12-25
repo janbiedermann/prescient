@@ -16,7 +16,7 @@ function start_vm() {
 }
 
 function vm_gem_list() {
-  vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C "cd C:/Users/${vm_user} && gem list -l" | tail -n +4 > "$av_g"
+  vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C "cd C:/Users/${vm_user} && call gem list -l" | tail -n +4 > "$av_g"
 }
 
 
@@ -36,7 +36,7 @@ if [ ! -f "$av_g" ]; then
 fi
 
 echo "Getting gems installed on '$ci_vm'."
-vboxmanage guestcontrol "$ci_vm" run --username=$vm_user --password=$vm_user_pass --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C "cd C:/Users/${vm_user} && gem list -l" | tail -n +4 > "$wa_g"
+vboxmanage guestcontrol "$ci_vm" run --username=$vm_user --password=$vm_user_pass --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C "cd C:/Users/${vm_user} && call gem list -l" | tail -n +4 > "$wa_g"
 
 if cmp -s "$av_g" "$wa_g"; then
   echo "Identical gems installed on '$vm' and '$ci_vm'."
@@ -52,7 +52,7 @@ else
         has=`echo "$installed" | grep "$version"`
         if [ -z "$has" ]; then
           echo "Installed: ${installed}, Installing: $gem $version"
-          vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C "cd C:/Users/${vm_user} && gem install -v $version $gem"
+          vboxmanage guestcontrol "$vm" run --username=$vm_user --password=$vm_user_pass --exe='C:/Windows/system32/cmd.exe' -- cmd.exe /C "cd C:/Users/${vm_user} && call gem install -v $version $gem"
         fi
       done
     fi

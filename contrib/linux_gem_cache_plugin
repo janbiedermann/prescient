@@ -24,7 +24,7 @@ function stop_vm() {
   shutdown=`vboxmanage controlvm "$vm" shutdown 2>&1`
   while [ -n "$shutdown" ]; do
     sleep 10
-    vboxmanage controlvm "$vm" shutdown
+    shutdown=`vboxmanage controlvm "$vm" shutdown 2>&1`
   done
 }
 
