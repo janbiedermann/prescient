@@ -49,6 +49,7 @@ else
       gem=`echo "$gem_spec" | awk '{print $1}'`
       versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
       for version in $versions; do
+        installed=`grep "^$gem " "$av_g"`
         has=`echo "$installed" | grep "$version"`
         if [ -z "$has" ]; then
           echo "Installed: ${installed}, Installing: $gem $version"
