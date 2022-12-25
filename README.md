@@ -82,6 +82,14 @@ windows:.prescient_ci/windows.bat
 linux:.prescient_ci/linux.sh
 ```
 
+When pushing to the git server, it will tell when CI are enqueued as part of the messages:
+```
+... git messages ...
+remote: Enqueueing CI run for c4168a062696c632850efc8a19aaf38b9905e2c3 on 'windows'.
+remote: Enqueueing CI run for c4168a062696c632850efc8a19aaf38b9905e2c3 on 'linux'.
+... git messages ...
+```
+
 ## Provisioning of VMs and Execution of Scripts
 
 With each push to the git server(s) above, the git hook enqueues the execution of the scripts in the `.prescient.conf` file on the specified machines. On the VM host, when the queue is ready, execution will start:
