@@ -1,0 +1,86 @@
+#!/bin/bash
+# this script supports Windows and Linux
+vm=$1
+ci_vm=$2
+vm_user=$3
+vm_user_pass=$4
+ci_port=$5
+vm_port=`shuf -i 30000-40000 -n 1`
+av_g="${HOME}/.prescient/${vm}_gems"
+wa_g="${HOME}/.prescient/${vm}_wanted_gems"
+win=`vboxmanage guestproperty get "$vm" /VirtualBox/GuestInfo/OS/Product | grep -i windows`
+started='no'
+
+function start_vm() {
+  if [ "$started" != 'yes' ]; then
+    started='yes'
+    vboxmanage startvm "$vm" --type=headless
+    vboxmanage controlvm "$vm" natpf1 delete plugin_ssh 2>/dev/null
+    vboxmanage controlvm "$vm" natpf1 "plugin_ssh,tcp,127.0.0.1,$vm_port,,22"
+    while [ -z "$started" ]; do
+      started=`sleep 10; sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
+    done
+  fi
+}
+
+function vm_gem_list() {
+  if [ -n "$win" ]; then
+    sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$av_g"
+  else
+    sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'bash -l -c "gem list -l"' | tail -n +4 > "$av_g"
+  fi
+}
+
+function stop_vm() {
+  if [ "$started" == 'yes' ]; then
+    vboxmanage controlvm "$vm" natpf1 delete plugin_ssh
+    vboxmanage controlvm "$vm" shutdown 2>&1
+    running=`vboxmanage list runningvms | grep "\"$vm\""`
+    while [ -n "$running" ]; do
+      running=`sleep 10; vboxmanage list runningvms | grep "\"$vm\""`
+    done
+  fi
+}
+
+if [ ! -s "$av_g" ]; then
+  echo "Getting gems that are installed on '$vm'."
+  start_vm
+  vm_gem_list
+fi
+
+echo "Getting gems that are installed on '$ci_vm'."
+if [ -n "$win" ]; then
+  sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$wa_g"
+else
+  sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port 127.0.0.1 'bash -l -c "gem list -l"' | tail -n +4 > "$wa_g"
+fi
+
+if cmp -s "$av_g" "$wa_g"; then
+  echo "Identical gems installed on '$vm' and '$ci_vm'."
+else
+  echo "Updating gems on '$vm'."
+  start_vm
+  while read -r gem_spec; do
+    gem_spec=`echo $gem_spec`
+    installed=`grep "$gem_spec" "$av_g"`
+    if [ -z "$installed" ]; then
+      gem=`echo "$gem_spec" | awk '{print $1}'`
+      versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
+      installed=`grep "^$gem " "$av_g"`
+      for version in $versions; do
+        has=`echo "$installed" | grep "$version"`
+        if [ -z "$has" ]; then
+          echo "Installed: ${installed}, Installing: ${gem} ${version}"
+          if [ -n "$win" ]; then
+            sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem install -v $version $gem\""
+          else
+            sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "bash -l -c \"gem install -v $version $gem\""
+          fi
+        fi
+      done
+    fi
+  done < "$wa_g"
+  vm_gem_list
+fi
+
+stop_vm
