@@ -92,7 +92,7 @@ while read oval commit ref; do
         echo "  sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 unzip -q -d '\$HOME' '\$HOME/$cm.zip'" >> $script
         echo 'fi' >> $script
         # run exe
-        echo "sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 \"cd \\\$HOME/tree; \$exe\" >~/.prescient/$cm.log_tmp 2>&1" >> $script
+        echo "sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 \"cd \\\$HOME/tree; \$exe\" | tr -d '\r' | >~/.prescient/$cm.log_tmp 2>&1" >> $script
         # move log
         echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script
         # call plugin if it exists
