@@ -126,6 +126,14 @@ In the contrib directory of this repo is a example plugin script, that caches Ru
 
 The execution log will be copied to the git server(s) `/var/lib/prescient`, to a directory named after the repo, commit and machine, eg: `/var/lib/prescient/my_repo.gi/d5660703f412dc854f8548b845b34eafe0ca3e6e_machine.log`
 
+## prescient.cgi
+
+![prescient.cgi screenshot](/contrib/prescient_cgi_screenshot.png)
+
+If you have a web server on the git server, the `contrib/prescient.cgi` will provide a nice formatted overview of the CI runs.
+It is a simple bash script, that scans the log files for the pattern `[0-9]+ errors`, `[0-9]+ failures`, `[0-9]+ skips`.
+To use it, copy it to the cgi-bin directory of the web server and make it executable.
+
 ## Hints
 
 - use '/' for paths also on Windows
