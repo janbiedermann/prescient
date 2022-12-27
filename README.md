@@ -2,6 +2,13 @@
 
 A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~150 lines of bash.
 
+## Features
+
+- use any script language you love for CI runs, no need for YAML
+- using very little CPU/RAM resources for itself
+- can scale up to many virtual machines
+- very adaptable to individual needs, just a few lines of bash
+  
 ## System Requirements
 
 - VirtualBox on one or more *nixish hosts
@@ -22,6 +29,7 @@ A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~15
 - install unzip
 - install sshpass
 - configure a user for running the virtual machines, the users shell should be bash
+- the `$HOME/.prescient` directory is used to store temporary repository data (kept for ~12 hours), it may need some space
 - ports between 30000 and 40000 on localhost will be used by virtual machines
 
 ### Virtual Machines on the Executing Hosts
@@ -35,7 +43,7 @@ This is true for most shells, also for PowerShell.
 - install VirtualBox Guest Utilities for performance
 - install [OpenSSH](https://github.com/PowerShell/Win32-OpenSSH)
 - make sure the host user can login via ssh using a password
-- PowerShell must be available when logging in via ssh
+- PowerShell must be available in the path when executing commands via ssh
  
 #### Linux
 
@@ -57,10 +65,12 @@ This is true for most shells, also for PowerShell.
 - install at
 - install zip
 - create a `/var/lib/prescient` directory, make it writeable for the git server user, that executes the git hooks
+- `/var/lib/prescient` is used to store the logs, give it some space
 - configure git user and bare repos
 - make sure the git server user, that executes the git hooks, can access the executing host and login via ssh public key authentication as the user, that can run and manage the virtual machines
 - create and edit /etc/prescient.conf, see below
 - install the git hooks in the bare repos, see below
+- /tmp used for temporary repository data (kept for ~13 hours), it may need some space
 
 ### /etc/prescient.conf
 
@@ -89,7 +99,7 @@ windows:powershell -Command prescient_ci/windows.bat
 linux:bash -l prescient_ci/linux.sh
 ```
 Machine names for developers (first item of /etc/prescient.conf) must match the pattern `[a-zA-Z0-9_-]+`
-Depending on VM configuration, it may be required to use a login shell on *nixish VMs.
+Depending on VM configuration, it may be required to use a login shell on *nixish VMs to execute commands.
 
 When pushing to the git server, it will tell when CI runs are enqueued:
 ```
@@ -158,3 +168,5 @@ windows|ci_host_2|ci_user_2|WindowsVM|vm_user|vm_pass
 ```
 - to follow and debug VM execution, login to the execution host and use `fq`
 - when you want to change configuration of a VM and jobs are still enqueued, simply write a small script and enqueue the script from the host users $HOME directory with `nq my_change_script`, it will be nicely queued in.
+- when something goes wrong, places to look: on the git server the `/tmp/prescient*` directories, on the execution hosts the `$HOME/.prescient/*` directories
+- for debugging you may use `set -x` in the bash scripts
