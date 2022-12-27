@@ -99,6 +99,7 @@ windows:powershell -Command prescient_ci/windows.bat
 linux:bash -l prescient_ci/linux.sh
 ```
 Machine names for developers (first item of /etc/prescient.conf) must match the pattern `[a-zA-Z0-9_-]+`
+
 Depending on VM configuration, it may be required to use a login shell on *nixish VMs to execute commands.
 
 When pushing to the git server, it will tell when CI runs are enqueued:
@@ -108,6 +109,13 @@ remote: Enqueueing CI run for c4168a062696c632850efc8a19aaf38b9905e2c3 on 'windo
 remote: Enqueueing CI run for c4168a062696c632850efc8a19aaf38b9905e2c3 on 'linux'.
 ... git messages ...
 ```
+
+Example integration:
+
+[isomorfeus-speednode](https://github.com/isomorfeus/isomorfeus-speednode)
+
+- [`.prescient`](https://github.com/isomorfeus/isomorfeus-speednode/blob/master/.prescient)
+- [CI scripts](https://github.com/isomorfeus/isomorfeus-speednode/tree/master/ci)
 
 ## Provisioning of VMs and Execution of Scripts
 
