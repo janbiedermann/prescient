@@ -17,8 +17,9 @@ function start_vm() {
     vboxmanage startvm "$vm" --type=headless
     vboxmanage controlvm "$vm" natpf1 delete plugin_ssh 2>/dev/null
     vboxmanage controlvm "$vm" natpf1 "plugin_ssh,tcp,127.0.0.1,$vm_port,,22"
-    while [ -z "$started" ]; do
-      started=`sleep 10; sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
+    ready=''
+    while [ -z "$ready" ]; do
+      ready=`sleep 10; sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
     done
   fi
 }
