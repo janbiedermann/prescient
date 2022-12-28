@@ -63,15 +63,15 @@ else
   start_vm
   while read -r gem_spec; do
     gem_spec=`echo $gem_spec`
-    installed=`grep "$gem_spec" "$av_g"`
-    if [ -z "$installed" ]; then
+    installed_all=`grep "$gem_spec" "$av_g"`
+    if [ -z "$installed_all" ]; then
       gem=`echo "$gem_spec" | awk '{print $1}'`
       versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
       installed_gem=`grep "^$gem " "$av_g"`
       for version in $versions; do
         has=`echo "$installed_gem" | grep -E "[( ]$version[,)]"`
         if [ -z "$has" ]; then
-          echo "Installed: ${installed}, Installing: ${gem} ${version}"
+          echo "Installed: ${installed_gem}, Installing: ${gem} ${version}"
           if [ -n "$win" ]; then
             sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem install -v $version $gem\""
           else
