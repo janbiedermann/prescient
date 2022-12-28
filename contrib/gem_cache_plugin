@@ -35,9 +35,9 @@ function stop_vm() {
   if [ "$started" == 'yes' ]; then
     vboxmanage controlvm "$vm" natpf1 delete plugin_ssh
     vboxmanage controlvm "$vm" shutdown 2>&1
-    running=`vboxmanage list runningvms | grep "\"$vm\""`
+    running=`vboxmanage list runningvms | grep "$vm"`
     while [ -n "$running" ]; do
-      running=`sleep 10; vboxmanage list runningvms | grep "\"$vm\""`
+      running=`sleep 10; vboxmanage list runningvms | grep "$vm"`
     done
   fi
 }
