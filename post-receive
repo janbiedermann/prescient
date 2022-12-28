@@ -92,7 +92,7 @@ while read oval commit ref; do
         echo "  sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 unzip -q -d '\$HOME' '\$HOME/$cm.zip'" >> $script
         echo 'fi' >> $script
         # run exe
-        echo "sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 \"cd \\\$HOME/tree; \$exe\" 2>&1 | tr -d '\r' >~/.prescient/$cm.log_tmp" >> $script
+        echo "timeout 1h sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 \"cd \\\$HOME/tree; \$exe\" 2>&1 | tr -d '\r' >~/.prescient/$cm.log_tmp" >> $script
         # move log
         echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script
         # call plugin if it exists
@@ -107,7 +107,7 @@ while read oval commit ref; do
         echo 'done' >> $script
         echo 'exit 0' >> $script
 
-        # enqueue execution of script
+        # enqueue execution of scripts
         chmod 700 $script
         ssh $user@$host mkdir -p '$HOME/.prescient'
         scp -p $script "$user@$host:"'$HOME/.prescient/'"$cm.sh"
@@ -120,7 +120,7 @@ while read oval commit ref; do
           echo "  kill -9 $nq_pid" >> $macl_script
           echo "  rm -f \"\$HOME/$nq_file\"" >> $macl_script
           echo 'fi' >> $macl_script
-          echo "rm -rf \"\$HOME/.prescient/$cm*\"" >> $macl_script
+          echo "rm -rf \$HOME/.prescient/$cm*" >> $macl_script
           scp $macl_script "$user@$host:"'$HOME/.prescient/'"${cm}_cleanup.sh"
           ssh $user@$host at -M -f '$HOME/.prescient/'"${cm}_cleanup.sh" now + 12 hours 1>/dev/null 2>&1
         fi
