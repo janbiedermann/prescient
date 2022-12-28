@@ -37,7 +37,7 @@ function stop_vm() {
     vboxmanage controlvm "$vm" shutdown 2>&1
     running=`vboxmanage list runningvms | grep "$vm"`
     while [ -n "$running" ]; do
-      running=`sleep 10; vboxmanage list runningvms | grep "$vm"`
+      running=`sleep 10; vboxmanage list runningvms | grep "\"$vm\""`
     done
   fi
 }
