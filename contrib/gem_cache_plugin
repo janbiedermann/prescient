@@ -67,9 +67,9 @@ else
     if [ -z "$installed" ]; then
       gem=`echo "$gem_spec" | awk '{print $1}'`
       versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
-      installed=`grep "^$gem " "$av_g"`
+      installed_gem=`grep "^$gem " "$av_g"`
       for version in $versions; do
-        has=`echo "$installed" | grep "$version"`
+        has=`echo "$installed_gem" | grep -E "[( ]$version[,)]"`
         if [ -z "$has" ]; then
           echo "Installed: ${installed}, Installing: ${gem} ${version}"
           if [ -n "$win" ]; then
