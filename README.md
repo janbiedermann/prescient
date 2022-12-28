@@ -14,7 +14,7 @@ A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~15
 - VirtualBox on one or more *nixish hosts
 - Git on one or more *nixish hosts, acting as git server(s)
 - OpenSSH
-- bash, at, zip, unzip, ssh, sshpass, shuf, grep, awk
+- bash, at, zip, unzip, ssh, sshpass, shuf, grep, awk, timeout
 - [nq](https://github.com/leahneukirchen/nq)
 - PowerShell on Windows VMs
 
@@ -110,6 +110,8 @@ remote: Enqueueing CI run for c4168a062696c632850efc8a19aaf38b9905e2c3 on 'linux
 ... git messages ...
 ```
 
+Job execution will timeout after one hour.
+
 Example integration:
 
 [isomorfeus-speednode](https://github.com/isomorfeus/isomorfeus-speednode)
@@ -175,6 +177,6 @@ windows|ci_host_2|ci_user_1|WindowsVM|vm_user|vm_pass
 windows|ci_host_2|ci_user_2|WindowsVM|vm_user|vm_pass
 ```
 - to follow and debug VM execution, login to the execution host and use `fq`
-- when you want to change configuration of a VM and jobs are still enqueued, simply write a small script and enqueue the script from the host users $HOME directory with `nq my_change_script`, it will be nicely queued in.
-- when something goes wrong, places to look: on the git server the `/tmp/prescient*` directories, on the execution hosts the `$HOME/.prescient/*` directories
+- when you want to change configuration of a VM and jobs are still enqueued, simply write a small script and enqueue the script from the host users $HOME directory with `nq my_change_script`, it will be nicely queued in. See `contrib/cmdvm.sh` for a start.
+- when something goes wrong, places to look: on the git server the `/tmp/prescient*` directories, on the execution hosts the `$HOME/.prescient/*` directories and files
 - for debugging you may use `set -x` in the bash scripts
