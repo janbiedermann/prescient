@@ -151,7 +151,7 @@ The execution log will be copied to the git server(s) `/var/lib/prescient`, to a
 ![prescient.cgi screenshot](/contrib/prescient_cgi_screenshot.png)
 
 If you have a web server on the git server, the `contrib/prescient.cgi` will provide a nice formatted overview of the CI runs.
-It is a simple bash script, that scans the log files for the pattern `[0-9]+ errors`, `[0-9]+ failures`, `[0-9]+ skips`, all case insensitive.
+It is a simple bash script, that scans the log files for the pattern `[0-9]+ errors`, `[0-9]+ failures`, `[0-9]+ skips`, `[0-9]+ pending`, all case insensitive.
 To use it, copy it to the cgi-bin directory of the web server and make it executable.
 
 ## Hints

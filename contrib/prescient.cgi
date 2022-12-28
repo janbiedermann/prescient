@@ -55,6 +55,7 @@ else
                         errrs=(`grep -o -i -E '[0-9]+ errors' "$rd_path"`)
                         fails=(`grep -o -i -E '[0-9]+ failures' "$rd_path"`)
                         skips=(`grep -o -i -E '[0-9]+ skips' "$rd_path"`)
+                        pendg=(`grep -o -i -E '[0-9]+ pending' "$rd_path"`)
                         echo -n '<li>'
                         c=${#errrs[@]}
                         if [ $c -eq 0 ]; then
@@ -63,11 +64,15 @@ else
                         if [ $c -eq 0 ]; then
                             c=${#skips[@]}
                         fi
+                        if [ $c -eq 0 ]; then
+                            c=${#pendg[@]}
+                        fi
                         for ((i=0;i<$c;i+=2)); do
                             color='darkgreen'
                             e=${errrs[$i]}
                             f=${fails[$i]}
                             s=${skips[$i]}
+                            p=${pendg[$i]}
                             if [ -n "$e" ] && [ 0 -ne $e ]; then
                                 color='darkred'
                             fi
@@ -76,6 +81,8 @@ else
                             fi
                             circle $color
                             if [ -n "$s" ] && [ 0 -ne $s ]; then
+                                circle 'darkorange'
+                            elif [ -n "$p" ] && [ 0 -ne $p ]; then
                                 circle 'darkorange'
                             fi
                             echo -n "&nbsp;|&nbsp;"
