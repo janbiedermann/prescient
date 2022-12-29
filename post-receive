@@ -4,7 +4,6 @@ pwd=`pwd`
 repo=${pwd:${#HOME}}
 while read oval commit ref; do
   if [ '0000000000000000000000000000000000000000' == "$commit" ]; then continue; fi
-
   # try to get .prescient from tree
   tmp_dir=`mktemp -d /tmp/prescient-XXXXX`
   GIT_WORKING_DIR="${tmp_dir}/tree"
@@ -14,7 +13,6 @@ while read oval commit ref; do
   unset GIT_DIR
   cd $GIT_WORKING_DIR
   git checkout $commit >/dev/null 2>/dev/null
-
   if [ ! -f $GWD_PRESCIENT ]; then
     echo "No .prescient file found in tree of ${commit}, skipping CI."
   else
@@ -22,7 +20,6 @@ while read oval commit ref; do
     tree_zip="${tmp_dir}/tree.zip"
     cd $tmp_dir
     zip -1 -y -r -q "${tmp_dir}/tree.zip" tree
-
     machines=`grep -o -E "^[a-zA-Z0-9_-]+" ${GWD_PRESCIENT}` # security !!!
     for machine in $machines; do
       machine_line=`grep "${machine}|" ${PC} | shuf -n 1`
@@ -41,10 +38,10 @@ while read oval commit ref; do
         cl_script="$tmp_dir/${cm}_copy_log" # at script
         macl_script="$tmp_dir/${cm}_cleanup_host" # at script
         rt_script="$tmp_dir/${cm}_remove_tmp" # at script
-
         # create script
         echo '#!/bin/bash' > $script
         echo "state=\`vboxmanage showvminfo '$vm' 2>/dev/null | grep ^State: | awk '{\$1=\"\"; print substr(\$0,2)}'\`" >> $script
+        echo "old_state=\`cat \"\${HOME}/.prescient/$vm\" 2>/dev/null\`" >> $script
         echo "ci_state=\`vboxmanage showvminfo '$ci_vm' 2>/dev/null | grep ^State: | awk '{\$1=\"\"; print substr(\$0,2)}'\`" >> $script
         # check if vm exists
         echo 'if [ -z "$state" ]; then' >> $script
@@ -58,12 +55,14 @@ while read oval commit ref; do
         echo "  vboxmanage snapshot '$ci_vm' take PrescientBase" >> $script
         echo "  echo -n \$state > \"\${HOME}/.prescient/$vm\"" >> $script
         echo '}' >> $script
-        echo 'running=`echo $state | grep running`' >> $script
-        echo "old_state=\`cat \"\${HOME}/.prescient/$vm\" 2>/dev/null\`" >> $script
-        echo 'if [ -n "$running" ]; then' >> $script
+        echo 'if [ -n `echo $state | grep running` ]; then' >> $script
         echo "  echo \"'$vm' is running, not cloning!\"" >> $script
         echo 'elif [ "$state" != "$old_state" ]; then' >> $script
         echo '  clone_vm' >> $script
+        echo 'elif [ -n `echo $ci_state | grep running` ]; then' >> $script
+        echo "  echo \"'$ci_vm' is running, reenqueueing!\"" >> $script
+        echo "  sleep 10; nq -c \"\$HOME/.prescient/$cm.sh\"" >> $script
+        echo '  exit 1'  >> $script
         echo 'elif [ -z "$ci_state" ]; then' >> $script
         echo '  clone_vm' >> $script
         echo 'fi' >> $script
@@ -107,7 +106,6 @@ while read oval commit ref; do
         echo "  running=\`sleep 10; vboxmanage list runningvms | grep '\"$ci_vm\"'\`" >> $script
         echo 'done' >> $script
         echo 'exit 0' >> $script
-
         # enqueue execution of scripts
         chmod 700 $script
         ssh $user@$host mkdir -p '$HOME/.prescient'
@@ -115,7 +113,6 @@ while read oval commit ref; do
         scp $tree_zip "$user@$host:"'$HOME/.prescient/'"$cm.zip"
         nq_file=`ssh $user@$host nq -c '$HOME/.prescient/'"$cm.sh"`
         nq_pid=`echo $nq_file | cut -d'.' -f 2`
-
         if [ -n "$nq_pid" ]; then # guard
           echo "if [ -f \"\$HOME/$nq_file\" ]; then" > $macl_script
           echo "  kill -9 $nq_pid" >> $macl_script
@@ -125,7 +122,6 @@ while read oval commit ref; do
           scp $macl_script "$user@$host:"'$HOME/.prescient/'"${cm}_cleanup.sh"
           ssh $user@$host at -M -f '$HOME/.prescient/'"${cm}_cleanup.sh" now + 12 hours 1>/dev/null 2>&1
         fi
-
         # copy log, try 360 * 2 min = 12 hours
         mkdir -p "/var/lib/prescient${repo}"
         echo '0' > $tmp_dir/$cm.cl_counter
@@ -141,10 +137,8 @@ while read oval commit ref; do
       fi
     done
   fi
-
   # cleanup everything else after 13 hours
   echo "rm -rf $tmp_dir" > $rt_script
   at -M -f $rt_script now + 13 hours 2>/dev/null
 done
-
 exit 0
