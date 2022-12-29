@@ -25,6 +25,7 @@ function start_vm() {
 }
 
 function vm_gem_list() {
+  echo "Getting installed gems off '$vm'."
   if [ -n "$win" ]; then
     sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$av_g"
   else
@@ -44,12 +45,11 @@ function stop_vm() {
 }
 
 if [ ! -s "$av_g" ]; then
-  echo "Getting gems that are installed on '$vm'."
   start_vm
   vm_gem_list
 fi
 
-echo "Getting gems that are installed on '$ci_vm'."
+echo "Getting installed gems off '$ci_vm'."
 if [ -n "$win" ]; then
   sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$wa_g"
 else
@@ -61,7 +61,7 @@ if cmp -s "$av_g" "$wa_g"; then
 else
   echo "Updating gems on '$vm'."
   start_vm
-  while read -r gem_spec; do
+  while read -r gem_spec <&3; do
     gem_spec=`echo $gem_spec`
     installed_all=`grep "^$gem_spec" "$av_g"`
     echo "Gem: $gem_spec"
@@ -81,7 +81,7 @@ else
         fi
       done
     fi
-  done < "$wa_g"
+  done 3< "$wa_g"
   vm_gem_list
 fi
 

@@ -95,11 +95,11 @@ else
                 if [ -f "$file_path" ]; then
                     echo "<pre>"
                     l=0
-                    while read -r line; do
+                    while read -r line <&3; do
                         l=$(($l+1))
                         printf '%6d: ' "$l"
                         echo "$line"
-                    done < "$file_path"
+                    done 3< "$file_path"
                     echo "<pre>"
                 else
                     dont_understand
