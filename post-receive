@@ -60,8 +60,7 @@ while read oval commit ref; do
         echo 'elif [ "$state" != "$old_state" ]; then' >> $script
         echo '  clone_vm' >> $script
         echo 'elif [ -n `echo $ci_state | grep running` ]; then' >> $script
-        echo "  echo \"'$ci_vm' is running, reenqueueing!\"" >> $script
-        echo "  sleep 10; nq -c \"\$HOME/.prescient/$cm.sh\"" >> $script
+        echo "  echo \"'$ci_vm' is running, can't restore snapshot, exiting!\"" >> $script
         echo '  exit 1'  >> $script
         echo 'elif [ -z "$ci_state" ]; then' >> $script
         echo '  clone_vm' >> $script
