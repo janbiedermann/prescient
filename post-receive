@@ -81,25 +81,26 @@ while read oval commit ref; do
         # wait until vm is ready
         echo "started=''" >> $script
         echo 'while [ -z "$started" ]; do' >> $script
-        echo "  started=\`sleep 10; sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 'echo started' 2>/dev/null\`" >> $script
+        echo "  started=\`sleep 10; sshpass -p '$vm_user_pass' ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 'echo started' 2>/dev/null\`" >> $script
         echo 'done' >> $script
         # copy tree, check vm OS, unzip
         echo "sshpass -p '$vm_user_pass' scp -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P \$port ~/.prescient/$cm.zip '$vm_user@127.0.0.1:\$HOME/'" >> $script
         echo "win=\`vboxmanage guestproperty get '$ci_vm' /VirtualBox/GuestInfo/OS/Product | grep -i windows\`" >> $script
         echo 'if [ -n "$win" ]; then' >> $script # Windows
-        echo "  sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 powershell -Command Expand-Archive -Path '\$HOME/$cm.zip' -DestinationPath '\$HOME'" >> $script
+        echo "  sshpass -p '$vm_user_pass' ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 powershell -Command Expand-Archive -Path '\$HOME/$cm.zip' -DestinationPath '\$HOME'" >> $script
         echo 'else' >> $script # *nixish
-        echo "  sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 unzip -q -d '\$HOME' '\$HOME/$cm.zip'" >> $script
+        echo "  sshpass -p '$vm_user_pass' ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 unzip -q -d '\$HOME' '\$HOME/$cm.zip'" >> $script
         echo 'fi' >> $script
         # run exe
-        echo "timeout 1h sshpass -p '$vm_user_pass' ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 \"cd \\\$HOME/tree; \$exe\" 2>&1 | tr -d '\r' >~/.prescient/$cm.log_tmp" >> $script
-        # move log
+        echo "echo \"CI run started at: \`date\`\" >~/.prescient/$cm.log_tmp" >> $script
+        echo "timeout 1h sshpass -p '$vm_user_pass' ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 \"cd \\\$HOME/tree; \$exe\" 2>&1 | tr -d '\r' >>~/.prescient/$cm.log_tmp" >> $script
+        echo "echo \"CI run finished at: \`date\`\" >>~/.prescient/$cm.log_tmp" >> $script
         echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script
         # call plugin if it exists
         echo "if [ -x './prescient/${vm}' ]; then" >> $script
         echo "  './prescient/$vm' '$vm' '$ci_vm' '$vm_user' '$vm_user_pass' \"\$port\"" >> $script
         echo 'fi' >> $script
-        # shutdown
+        # shutdown vm
         echo "vboxmanage controlvm '$ci_vm' poweroff" >> $script
         echo "running='running'" >> $script
         echo 'while [ -n "$running" ]; do' >> $script
@@ -141,7 +142,7 @@ while read oval commit ref; do
     done
   fi
 
-  # cleanup everything else
+  # cleanup everything else after 13 hours
   echo "rm -rf $tmp_dir" > $rt_script
   at -M -f $rt_script now + 13 hours 2>/dev/null
 done

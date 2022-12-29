@@ -19,16 +19,16 @@ function start_vm() {
     vboxmanage controlvm "$vm" natpf1 "plugin_ssh,tcp,127.0.0.1,$vm_port,,22"
     ready=''
     while [ -z "$ready" ]; do
-      ready=`sleep 10; sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
+      ready=`sleep 10; sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
     done
   fi
 }
 
 function vm_gem_list() {
   if [ -n "$win" ]; then
-    sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$av_g"
+    sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$av_g"
   else
-    sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'bash -l -c "gem list -l"' | tail -n +4 > "$av_g"
+    sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'bash -l -c "gem list -l"' | tail -n +4 > "$av_g"
   fi
 }
 
@@ -51,9 +51,9 @@ fi
 
 echo "Getting gems that are installed on '$ci_vm'."
 if [ -n "$win" ]; then
-  sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$wa_g"
+  sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$wa_g"
 else
-  sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port 127.0.0.1 'bash -l -c "gem list -l"' | tail -n +4 > "$wa_g"
+  sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port 127.0.0.1 'bash -l -c "gem list -l"' | tail -n +4 > "$wa_g"
 fi
 
 if cmp -s "$av_g" "$wa_g"; then
@@ -63,7 +63,8 @@ else
   start_vm
   while read -r gem_spec; do
     gem_spec=`echo $gem_spec`
-    installed_all=`grep "$gem_spec" "$av_g"`
+    installed_all=`grep "^$gem_spec" "$av_g"`
+    echo "Gem: $gem_spec"
     if [ -z "$installed_all" ]; then
       gem=`echo "$gem_spec" | awk '{print $1}'`
       versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
@@ -71,11 +72,11 @@ else
       for version in $versions; do
         has=`echo "$installed_gem" | grep -E "[( ]$version[,)]"`
         if [ -z "$has" ]; then
-          echo "Installed: ${installed_gem}, Installing: ${gem} ${version}"
+          echo "Already installed: ${installed_gem}, Installing: ${gem} ${version}"
           if [ -n "$win" ]; then
-            sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem install -v $version $gem\""
+            sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem install -v $version $gem\""
           else
-            sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "bash -l -c \"gem install -v $version $gem\""
+            sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "bash -l -c \"gem install -v $version $gem\""
           fi
         fi
       done
