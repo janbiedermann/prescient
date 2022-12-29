@@ -16,7 +16,7 @@ vboxmanage controlvm "$vm" natpf1 "cmd_ssh,tcp,127.0.0.1,$vm_port,,22"
 
 started=''
 while [ -z "$started" ]; do
-    started=`sleep 10; sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
+    started=`sleep 10; sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
 done
 
 echo "VM '$vm' ready, listening on port $vm_port"
@@ -25,7 +25,7 @@ if [ -n "$command_file" ]; then
     echo "Command file '$command_file' given."
     while read -r command; do
         echo "Executing command: $command"
-        timeout 1h sshpass -p "$vm_user_pass" ssh -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $port 127.0.0.1 "$command" 2>&1 | tr -d '\r'
+        timeout 1h sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $port 127.0.0.1 "$command" 2>&1 | tr -d '\r'
     done
     echo "All done, shutting down."
     vboxmanage controlvm "$vm" natpf1 delete cmd_ssh
