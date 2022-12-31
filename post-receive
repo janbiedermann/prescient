@@ -55,11 +55,11 @@ while read oval commit ref; do
         echo "  vboxmanage snapshot '$ci_vm' take PrescientBase" >> $script
         echo "  echo -n \$state > \"\${HOME}/.prescient/$vm\"" >> $script
         echo '}' >> $script
-        echo 'if [ -n `echo $state | grep running` ]; then' >> $script
+        echo 'if [ -n "`echo $state | grep running`" ]; then' >> $script
         echo "  echo \"'$vm' is running, not cloning!\"" >> $script
         echo 'elif [ "$state" != "$old_state" ]; then' >> $script
         echo '  clone_vm' >> $script
-        echo 'elif [ -n `echo $ci_state | grep running` ]; then' >> $script
+        echo 'elif [ -n "`echo $ci_state | grep running`" ]; then' >> $script
         echo "  echo \"'$ci_vm' is running, can't restore snapshot, exiting!\"" >> $script
         echo '  exit 1'  >> $script
         echo 'elif [ -z "$ci_state" ]; then' >> $script
