@@ -25,7 +25,7 @@ function start_vm() {
 }
 
 function vm_gem_list() {
-  echo "Getting installed gems off '$vm'."
+  echo "Getting installed gems of '$vm'."
   if [ -n "$win" ]; then
     sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$av_g"
   else
