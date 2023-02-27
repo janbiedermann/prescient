@@ -1,20 +1,20 @@
 # pres**ci**ent
 
-A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~150 lines of bash.
+A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~150 lines of sh.
 
 ## Features
 
 - use any script language you love for CI runs, no need for YAML
 - using very little CPU/RAM resources for itself
 - can scale up to many virtual machines
-- very adaptable to individual needs, just a few lines of bash
+- very adaptable to individual needs, just a few lines of sh
   
 ## System Requirements
 
-- VirtualBox on one or more *nixish hosts
+- VirtualBox 6.1 or greater on one or more *nixish hosts
 - Git on one or more *nixish hosts, acting as git server(s)
 - OpenSSH
-- bash, at, zip, unzip, ssh, sshpass, shuf, grep, awk, timeout
+- sh, at, zip, unzip, ssh, sshpass, shuf, grep, awk, timeout
 - [nq](https://github.com/leahneukirchen/nq)
 - PowerShell on Windows VMs
 
@@ -23,12 +23,12 @@ A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~15
 ### Executing Hosts
 
 - Linux is recommended
-- install nq, probably something like `apt install nq`
+- install nq
 - install at
 - install VirtualBox
 - install unzip
 - install sshpass
-- configure a user for running the virtual machines, the users shell should be bash
+- configure a user for running the virtual machines, the users shell should be sh compatible
 - the `$HOME/.prescient` directory is used to store temporary repository data (kept for ~12 hours), it may need some space
 - ports between 30000 and 40000 on localhost will be used by virtual machines
 
@@ -63,6 +63,7 @@ This is true for most shells, also for PowerShell.
 ### Git server(s)
 
 - install at
+- install shuf
 - install zip
 - create a `/var/lib/prescient` directory, make it writeable for the git server user, that executes the git hooks
 - `/var/lib/prescient` is used to store the logs, give it some space
@@ -88,7 +89,7 @@ Example line:
 
 ### Git Hooks
 
-Copy the `post-receive` git hook to each bare repos `hooks` directory, that is meant to be served for CI, or alternatively create a symbolic link to the script from a safe place (makes updating the hook easier). The git hook is written for bash. Make sure the git hook is executable.
+Copy the `post-receive` git hook to each bare repos `hooks` directory, that is meant to be served for CI, or alternatively create a symbolic link to the script from a safe place (makes updating the hook easier). The git hook is written for sh. Make sure the git hook is executable.
 
 ## Usage from within the developers git repository
 
@@ -151,7 +152,7 @@ The execution log will be copied to the git server(s) `/var/lib/prescient`, to a
 ![prescient.cgi screenshot](/contrib/prescient_cgi_screenshot.png)
 
 If you have a web server on the git server, the `contrib/prescient.cgi` will provide a nice formatted overview of the CI runs.
-It is a simple bash script, that scans the log files for the pattern `[0-9]+ errors`, `[0-9]+ failures`, `[0-9]+ skips`, `[0-9]+ pending`, all case insensitive.
+It is a simple sh script, that scans the log files for the pattern `[0-9]+ errors`, `[0-9]+ failures`, `[0-9]+ skips`, `[0-9]+ pending`, all case insensitive.
 To use it, copy it to the cgi-bin directory of the web server and make it executable.
 
 ## Hints
@@ -179,4 +180,4 @@ windows|ci_host_2|ci_user_2|WindowsVM|vm_user|vm_pass
 - to follow and debug VM execution, login to the execution host and use `fq`
 - when you want to change configuration of a VM and jobs are still enqueued, simply write a small script and enqueue the script from the host users $HOME directory with `nq my_change_script`, it will be nicely queued in. See `contrib/cmdvm.sh` for a start.
 - when something goes wrong, places to look: on the git server the `/tmp/prescient*` directories, on the execution hosts the `$HOME/.prescient/*` directories and files
-- for debugging you may use `set -x` in the bash scripts
+- for debugging you may use `set -x` in the sh scripts

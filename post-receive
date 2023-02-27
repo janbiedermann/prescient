@@ -1,9 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 PC="/etc/prescient.conf"
-pwd=`pwd`
-repo=${pwd:${#HOME}}
+repo=${PWD##*/}
 while read oval commit ref; do
-  if [ '0000000000000000000000000000000000000000' == "$commit" ]; then continue; fi
+  if [ '0000000000000000000000000000000000000000' = "$commit" ]; then continue; fi
   # try to get .prescient from tree
   tmp_dir=`mktemp -d /tmp/prescient-XXXXX`
   GIT_WORKING_DIR="${tmp_dir}/tree"
@@ -39,7 +38,7 @@ while read oval commit ref; do
         macl_script="$tmp_dir/${cm}_cleanup_host" # at script
         rt_script="$tmp_dir/${cm}_remove_tmp" # at script
         # create script
-        echo '#!/bin/bash' > $script
+        echo '#!/bin/sh' > $script
         echo "state=\`vboxmanage showvminfo '$vm' 2>/dev/null | grep ^State: | awk '{\$1=\"\"; print substr(\$0,2)}'\`" >> $script
         echo "old_state=\`cat \"\${HOME}/.prescient/$vm\" 2>/dev/null\`" >> $script
         echo "ci_state=\`vboxmanage showvminfo '$ci_vm' 2>/dev/null | grep ^State: | awk '{\$1=\"\"; print substr(\$0,2)}'\`" >> $script
@@ -49,7 +48,7 @@ while read oval commit ref; do
         echo '  exit 1' >> $script
         echo 'fi' >> $script
         # clone, if necessary and create base snapshot
-        echo 'function clone_vm() {' >> $script
+        echo 'clone_vm() {' >> $script
         echo "  vboxmanage unregistervm '$ci_vm' --delete 2>/dev/null" >> $script
         echo "  vboxmanage clonevm '$vm' --mode=machine --name='$ci_vm' --register" >> $script
         echo "  vboxmanage snapshot '$ci_vm' take PrescientBase" >> $script
@@ -113,7 +112,8 @@ while read oval commit ref; do
         nq_file=`ssh $user@$host nq -c '$HOME/.prescient/'"$cm.sh"`
         nq_pid=`echo $nq_file | cut -d'.' -f 2`
         if [ -n "$nq_pid" ]; then # guard
-          echo "if [ -f \"\$HOME/$nq_file\" ]; then" > $macl_script
+          echo '#!/bin/sh' > $macl_script
+          echo "if [ -f \"\$HOME/$nq_file\" ]; then" >> $macl_script
           echo "  kill -9 $nq_pid" >> $macl_script
           echo "  rm -f \"\$HOME/$nq_file\"" >> $macl_script
           echo 'fi' >> $macl_script
@@ -122,10 +122,11 @@ while read oval commit ref; do
           ssh $user@$host at -M -f '$HOME/.prescient/'"${cm}_cleanup.sh" now + 12 hours 1>/dev/null 2>&1
         fi
         # copy log, try 360 * 2 min = 12 hours
-        mkdir -p "/var/lib/prescient${repo}"
+        mkdir -p "/var/lib/prescient/${repo}"
         echo '0' > $tmp_dir/$cm.cl_counter
-        echo "scp '$user@$host:"'$HOME/.prescient/'"${cm}.log' /var/lib/prescient${repo}/ 2>/dev/null" >> $cl_script
-        echo "if [ ! -f /var/lib/prescient${repo}/$cm.log ]; then" >> $cl_script
+        echo '#!/bin/sh' > $cl_script
+        echo "scp '$user@$host:"'$HOME/.prescient/'"${cm}.log' /var/lib/prescient/${repo}/ 2>/dev/null" >> $cl_script
+        echo "if [ ! -f /var/lib/prescient/${repo}/$cm.log ]; then" >> $cl_script
         echo "  c=`cat $tmp_dir/$cm.cl_counter`" >> $cl_script
         echo '  if [ 360 -gt $c ]; then' >> $cl_script
         echo '    echo $(($c+1)) > '"$tmp_dir/$cm.cl_counter" >> $cl_script

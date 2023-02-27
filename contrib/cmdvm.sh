@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # simple script to start a vm for service with a random ssh port or execute a command_file
 # run like: ./startvm.sh MyVM username password [command_file]
 # each line of the optional command_file is executed seprately in order, when command_file is given
@@ -16,22 +16,22 @@ vboxmanage controlvm "$vm" natpf1 "cmd_ssh,tcp,127.0.0.1,$vm_port,,22"
 
 started=''
 while [ -z "$started" ]; do
-    started=`sleep 10; sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
+  started=`sleep 10; sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
 done
 
 echo "VM '$vm' ready, listening on port $vm_port"
 
 if [ -n "$command_file" ]; then
-    echo "Command file '$command_file' given."
-    while read -r command <&3; do
-        echo "Executing command: $command"
-        timeout 1h sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $port 127.0.0.1 "$command" 2>&1 | tr -d '\r'
-    done 3< "$command_file"
-    echo "All done, shutting down."
-    vboxmanage controlvm "$vm" natpf1 delete cmd_ssh
-    vboxmanage controlvm "$vm" shutdown 2>&1
-    running=`vboxmanage list runningvms | grep "$vm"`
-    while [ -n "$running" ]; do
-      running=`sleep 10; vboxmanage list runningvms | grep "$vm"`
-    done
+  echo "Command file '$command_file' given."
+  while read -r command <&3; do
+    echo "Executing command: $command"
+    timeout 1h sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $port 127.0.0.1 "$command" 2>&1 | tr -d '\r'
+  done 3< "$command_file"
+  echo "All done, shutting down."
+  vboxmanage controlvm "$vm" natpf1 delete cmd_ssh
+  vboxmanage controlvm "$vm" acpipowerbutton 2>&1
+  running=`vboxmanage list runningvms | grep "$vm"`
+  while [ -n "$running" ]; do
+    running=`sleep 10; vboxmanage list runningvms | grep "$vm"`
+  done
 fi
