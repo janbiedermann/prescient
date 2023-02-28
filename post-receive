@@ -81,7 +81,7 @@ while read oval commit ref; do
         echo "  started=\`sleep 10; sshpass -p '$vm_user_pass' ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 'echo started' 2>/dev/null\`" >> $script
         echo 'done' >> $script
         # copy tree, check vm OS, unzip
-        echo "sshpass -p '$vm_user_pass' scp -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P \$port ~/.prescient/$cm.zip '$vm_user@127.0.0.1:\$HOME/'" >> $script
+        echo "sshpass -p '$vm_user_pass' scp -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P \${port} ~/.prescient/$cm.zip '$vm_user@127.0.0.1:~/'" >> $script
         echo "win=\`vboxmanage guestproperty get '$ci_vm' /VirtualBox/GuestInfo/OS/Product | grep -i windows\`" >> $script
         echo 'if [ -n "$win" ]; then' >> $script # Windows
         echo "  sshpass -p '$vm_user_pass' ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 powershell -Command Expand-Archive -Path '\$HOME/$cm.zip' -DestinationPath '\$HOME'" >> $script
@@ -107,8 +107,8 @@ while read oval commit ref; do
         # enqueue execution of scripts
         chmod 700 $script
         ssh $user@$host mkdir -p '$HOME/.prescient'
-        scp -p $script "$user@$host:"'$HOME/.prescient/'"$cm.sh"
-        scp $tree_zip "$user@$host:"'$HOME/.prescient/'"$cm.zip"
+        scp -p $script "$user@$host:"'~/.prescient/'"$cm.sh"
+        scp $tree_zip "$user@$host:"'~/.prescient/'"$cm.zip"
         nq_file=`ssh $user@$host nq -c '$HOME/.prescient/'"$cm.sh"`
         nq_pid=`echo $nq_file | cut -d'.' -f 2`
         if [ -n "$nq_pid" ]; then # guard
@@ -125,7 +125,7 @@ while read oval commit ref; do
         mkdir -p "/var/lib/prescient/${repo}"
         echo '0' > $tmp_dir/$cm.cl_counter
         echo '#!/bin/sh' > $cl_script
-        echo "scp '$user@$host:"'$HOME/.prescient/'"${cm}.log' /var/lib/prescient/${repo}/ 2>/dev/null" >> $cl_script
+        echo "scp '$user@$host:"'~/.prescient/'"${cm}.log' /var/lib/prescient/${repo}/ 2>/dev/null" >> $cl_script
         echo "if [ ! -f /var/lib/prescient/${repo}/$cm.log ]; then" >> $cl_script
         echo "  c=`cat $tmp_dir/$cm.cl_counter`" >> $cl_script
         echo '  if [ 360 -gt $c ]; then' >> $cl_script
