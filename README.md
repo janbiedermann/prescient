@@ -1,6 +1,6 @@
 # pres**ci**ent
 
-A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~150 lines of sh.
+A simple, reliable, *nixish (that also includes Windows/Cygwin) continuous integration for Git and VirtualBox in ~150 lines of sh.
 
 ## Features
 
@@ -22,7 +22,7 @@ A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~15
 
 ### Executing Hosts
 
-- Linux is recommended
+- Linux is recommended, FreeBSD works too, except VirtualBox 6.1.36 on FreeBSD 13 is not very reliable
 - install nq
 - install at
 - install VirtualBox
@@ -31,6 +31,17 @@ A simple, reliable, *nixish continuous integration for Git and VirtualBox in ~15
 - configure a user for running the virtual machines, the users shell should be sh compatible
 - the `$HOME/.prescient` directory is used to store temporary repository data (kept for ~12 hours), it may need some space
 - ports between 30000 and 40000 on localhost will be used by virtual machines
+
+#### Using Windows as Executing Host
+
+- install VirtualBox
+- install cygwin with the tools as above
+- configure user as above
+- add path of vboxmanage.exe to PATH in $HOME/.bashrc 
+- in addition install make and gcc-core, maybe git, clone nq from its repo, compile it, copy binaries somewhere into the path
+- in addition install openssh, run it as service, enable PermitUserEnvironment
+- set env in .ssh/environment (`env > .ssh/environment` and cleanup connection specific vars)
+- automatic cleanup will of remaining files will fail, they must be cleaned up by other means
 
 ### Virtual Machines on the Executing Hosts
 

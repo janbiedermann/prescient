@@ -119,7 +119,7 @@ while read oval commit ref; do
           echo 'fi' >> $macl_script
           echo "rm -rf \$HOME/.prescient/$cm*" >> $macl_script
           scp $macl_script "$user@$host:"'$HOME/.prescient/'"${cm}_cleanup.sh"
-          ssh $user@$host at -M -f '$HOME/.prescient/'"${cm}_cleanup.sh" now + 12 hours 1>/dev/null 2>&1
+          ssh $user@$host at -M -f '$HOME/.prescient/'"${cm}_cleanup.sh" now + 12 hours 1>/dev/null 2>&1 # this will fail on Windows/Cygwin because at is not available
         fi
         # copy log, try 360 * 2 min = 12 hours
         mkdir -p "/var/lib/prescient/${repo}"
