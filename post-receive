@@ -35,7 +35,7 @@ while read oval commit ref; do
         cm="${commit}_$machine"
         script="$tmp_dir/$cm.sh"
         cl_script="$tmp_dir/${cm}_copy_log" # at script
-        macl_script="$tmp_dir/${cm}_cleanup_host" # at script
+        macl_script="$tmp_dir/${cm}_cleanup_host"
         rt_script="$tmp_dir/${cm}_remove_tmp" # at script
         # create script
         echo '#!/bin/sh' > $script
@@ -95,10 +95,10 @@ while read oval commit ref; do
         echo "mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script
         # call plugin if it exists
         echo "if [ -x './prescient/${vm}' ]; then" >> $script
-        echo "  './prescient/$vm' '$vm' '$ci_vm' '$vm_user' '$vm_user_pass' \"\$port\"" >> $script
+        echo "  timeout 1h './prescient/$vm' '$vm' '$ci_vm' '$vm_user' '$vm_user_pass' \"\$port\"" >> $script
         echo 'fi' >> $script
         # shutdown vm
-        echo "vboxmanage controlvm '$ci_vm' poweroff" >> $script
+        echo "vboxmanage controlvm '$ci_vm' poweroff" >> $script # no need to be graceful, it will be restored from snapshot anyway
         echo "running='running'" >> $script
         echo 'while [ -n "$running" ]; do' >> $script
         echo "  running=\`sleep 10; vboxmanage list runningvms | grep '\"$ci_vm\"'\`" >> $script
@@ -107,24 +107,20 @@ while read oval commit ref; do
         # enqueue execution of scripts
         chmod 700 $script
         ssh $user@$host mkdir -p '$HOME/.prescient'
-        scp -p $script "$user@$host:"'~/.prescient/'"$cm.sh"
-        scp $tree_zip "$user@$host:"'~/.prescient/'"$cm.zip"
+        scp -p $script "$user@$host:~/.prescient/$cm.sh"
+        scp $tree_zip "$user@$host:~/.prescient/$cm.zip"
         nq_file=`ssh $user@$host nq -c '$HOME/.prescient/'"$cm.sh"`
         nq_pid=`echo $nq_file | cut -d'.' -f 2`
         if [ -n "$nq_pid" ]; then # guard
           echo '#!/bin/sh' > $macl_script
-          echo "if [ -f \"\$HOME/$nq_file\" ]; then" >> $macl_script
-          echo "  kill -9 $nq_pid" >> $macl_script
-          echo "  rm -f \"\$HOME/$nq_file\"" >> $macl_script
-          echo 'fi' >> $macl_script
-          echo "rm -rf \$HOME/.prescient/$cm*" >> $macl_script
-          scp $macl_script "$user@$host:"'$HOME/.prescient/'"${cm}_cleanup.sh"
-          ssh $user@$host at -M -f '$HOME/.prescient/'"${cm}_cleanup.sh" now + 12 hours 1>/dev/null 2>&1 # this will fail on Windows/Cygwin because at is not available
+          echo "rm -rf \$HOME/.prescient/${cm} \$HOME/.prescient/${cm}.zip \$HOME/.prescient/${cm}.sh \$HOME/.prescient/${cm}_cleanup.sh" >> $macl_script
+          chmod 700 $macl_script
+          scp $macl_script "$user@$host:~/.prescient/${cm}_cleanup.sh"
+          ssh $user@$host nq -c '$HOME/.prescient/'"${cm}_cleanup.sh" >/dev/null
         fi
         # copy log, try 360 * 2 min = 12 hours
         mkdir -p "/var/lib/prescient/${repo}"
         echo '0' > $tmp_dir/$cm.cl_counter
-        echo '#!/bin/sh' > $cl_script
         echo "scp '$user@$host:"'~/.prescient/'"${cm}.log' /var/lib/prescient/${repo}/ 2>/dev/null" >> $cl_script
         echo "if [ ! -f /var/lib/prescient/${repo}/$cm.log ]; then" >> $cl_script
         echo "  c=`cat $tmp_dir/$cm.cl_counter`" >> $cl_script
@@ -132,6 +128,8 @@ while read oval commit ref; do
         echo '    echo $(($c+1)) > '"$tmp_dir/$cm.cl_counter" >> $cl_script
         echo "    at -M -f $cl_script now + 2 min" >> $cl_script
         echo '  fi' >> $cl_script
+        echo 'else' >> $cl_script
+        echo "  ssh $user@$host rm -f .prescient/${cm}.log" >> $cl_script
         echo 'fi' >> $cl_script
         at -M -f $cl_script now + 2 min 1>/dev/null 2>&1
       fi
