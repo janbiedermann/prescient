@@ -22,9 +22,10 @@ A simple, reliable, *nixish (that also includes Windows/Cygwin) continuous integ
 
 ### Executing Hosts
 
+#### Linux or FreeBSD or other *nixes
+
 - Linux is recommended, FreeBSD works too, except VirtualBox 6.1.36 on FreeBSD 13 is not very reliable
 - install nq
-- install at
 - install VirtualBox
 - install unzip
 - install sshpass
@@ -38,10 +39,9 @@ A simple, reliable, *nixish (that also includes Windows/Cygwin) continuous integ
 - install cygwin with the tools as above
 - configure user as above
 - add path of vboxmanage.exe to PATH in $HOME/.bashrc 
-- in addition install make and gcc-core, maybe git, clone nq from its repo, compile it, copy binaries somewhere into the path
-- in addition install openssh, run it as service, enable PermitUserEnvironment
+- in addition install in cygwin make and gcc-core, maybe git, clone nq from its repo, compile it, copy binaries somewhere into the path
+- in addition install in cygwin openssh, run it as service, enable PermitUserEnvironment
 - set env in .ssh/environment (`env > .ssh/environment` and cleanup connection specific vars)
-- automatic cleanup will of remaining files will fail, they must be cleaned up by other means
 
 ### Virtual Machines on the Executing Hosts
 
@@ -55,6 +55,7 @@ This is true for most shells, also for PowerShell.
 - install [OpenSSH](https://github.com/PowerShell/Win32-OpenSSH)
 - make sure the host user can login via ssh using a password
 - PowerShell must be available in the path when executing commands via ssh
+- There may be problems with shutting down the machine, for a solution see [contrib/Add_Enable_forced_button...](/contrib/Add_Enable_forced_button-lid-shutdown_to_Power_Options.reg)
  
 #### Linux
 
