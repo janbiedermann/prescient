@@ -35,7 +35,10 @@ vm_gem_list() {
 
 stop_vm() {
   if [ "$started" = 'yes' ]; then
+    echo "stopping $vm"
     vboxmanage controlvm "$vm" natpf1 delete plugin_ssh
+    vboxmanage controlvm "$vm" acpipowerbutton 2>&1 # call 3 times in a row because Windows
+    vboxmanage controlvm "$vm" acpipowerbutton 2>&1
     vboxmanage controlvm "$vm" acpipowerbutton 2>&1
     running=`vboxmanage list runningvms | grep "$vm"`
     while [ -n "$running" ]; do
