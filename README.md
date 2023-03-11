@@ -7,6 +7,7 @@ A simple, reliable, *nixish (that also includes Windows/Cygwin) continuous integ
 - use any script language you love for CI runs, no need for YAML
 - using very little CPU/RAM resources for itself
 - can scale up to many virtual machines
+- using linked clones
 - very adaptable to individual needs, just a few lines of sh
   
 ## System Requirements
@@ -137,7 +138,7 @@ Example integration:
 
 With each push to the git server(s) above, the git hook enqueues the execution of the scripts in the `.prescient.conf` file on the specified machines. On the VM host, when the queue is ready, execution will start:
 
-- First, the determined target VM will be cloned, a snapshot of the clone will be prepared, this snapshot will then be used for the actual execution. Cloning of the vm will happen only, if a change on the original vm has been detected, or a clone doesn't exist yet.
+- First, the determined target VM will be cloned from a snapshot of the original VM, creating a linked clone, a snapshot of the clone will be prepared, this snapshot will then be used for the actual execution. Cloning of the vm will happen only, if a change on the original vm has been detected, or a clone doesn't exist yet.
 - The snapshot will be started.
 - The git repo will copied to the vm
 - The command as specified in the `.prescient.conf` file of the repo will be executed from within the checked out repo via ssh
