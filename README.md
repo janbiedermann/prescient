@@ -84,7 +84,8 @@ This is true for most shells, also for PowerShell.
 - create and edit /etc/prescient.conf, see below
 - install the git hooks in the bare repos, see below
 - /tmp used for temporary repository data (kept for ~13 hours), it may need some space
-
+- make sure, the git user can schedule commands using at, eg. on FreeBSD at it to /var/at/at.allow
+  
 ### /etc/prescient.conf
 
 In this configuration file the available virtual machines are configured. It uses a very simple syntax. Each line defines a vm, each item on a line is separated by `|`, order of items is important.

@@ -126,17 +126,17 @@ while read oval commit ref; do
         echo "  c=`cat $tmp_dir/$cm.cl_counter`" >> $cl_script
         echo '  if [ 360 -gt $c ]; then' >> $cl_script
         echo '    echo $(($c+1)) > '"$tmp_dir/$cm.cl_counter" >> $cl_script
-        echo "    at -M -f $cl_script now + 2 min" >> $cl_script
+        echo "    at -f $cl_script now + 2 minutes" >> $cl_script
         echo '  fi' >> $cl_script
         echo 'else' >> $cl_script
         echo "  ssh $user@$host rm -f .prescient/${cm}.log" >> $cl_script
         echo 'fi' >> $cl_script
-        at -M -f $cl_script now + 2 min 1>/dev/null 2>&1
+        at -f $cl_script now + 2 minutes 1>/dev/null 2>&1
       fi
     done
   fi
   # cleanup everything else after 13 hours
   echo "rm -rf $tmp_dir" > $rt_script
-  at -M -f $rt_script now + 13 hours 2>/dev/null
+  at -f $rt_script now + 13 hours 2>/dev/null
 done
 exit 0
