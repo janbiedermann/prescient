@@ -50,8 +50,9 @@ while read oval commit ref; do
         # clone, if necessary and create base snapshot
         echo 'clone_vm() {' >> $script
         echo "  vboxmanage unregistervm '$ci_vm' --delete 2>/dev/null" >> $script
-        echo "  vboxmanage snapshot '$vm' delete PrescientCloneBase 2>/dev/null" >> $script
+        echo "  vboxmanage snapshot '$vm' edit PrescientCloneBase --name=PrecientCloneBaseOld 2>/dev/null" >> $script
         echo "  vboxmanage snapshot '$vm' take PrescientCloneBase" >> $script
+        echo "  vboxmanage snapshot '$vm' delete PrecientCloneBaseOld 2>/dev/null" >> $script
         echo "  vboxmanage clonevm '$vm' --mode=machine --name='$ci_vm' --options=Link --register --snapshot=PrescientCloneBase" >> $script
         echo "  vboxmanage snapshot '$ci_vm' take PrescientBase" >> $script
         echo "  echo -n \$state > \"\${HOME}/.prescient/$vm\"" >> $script
