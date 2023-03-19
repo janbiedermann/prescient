@@ -8,7 +8,7 @@ vm_user=$2
 vm_user_pass=$3
 command_file=$4
 
-if [ -z "$vm" ] || [ -z "$vm_user" ] || [ -z "$vm_user_pass"]; then
+if [ -z "$vm" ] || [ -z "$vm_user" ] || [ -z "$vm_user_pass" ]; then
   echo "Execute like:"
   echo "cmdvm.sh VMName vm_user vw_user_password [optional_script]"
   exit 1
