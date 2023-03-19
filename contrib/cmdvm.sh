@@ -8,18 +8,26 @@ vm_user=$2
 vm_user_pass=$3
 command_file=$4
 
+if [ -z "$vm" ] || [ -z "$vm_user" ] || [ -z "$vm_user_pass"]; then
+  echo "Execute like:"
+  echo "cmdvm.sh VMName vm_user vw_user_password [optional_script]"
+  exit 1
+fi
+
 vm_port=`shuf -i 30000-40000 -n 1`
 
 vboxmanage startvm "$vm" --type=headless
 vboxmanage controlvm "$vm" natpf1 delete cmd_ssh 2>/dev/null
 vboxmanage controlvm "$vm" natpf1 "cmd_ssh,tcp,127.0.0.1,$vm_port,,22"
 
+echo "listening on port $vm_port"
+
 started=''
 while [ -z "$started" ]; do
   started=`sleep 10; sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
 done
 
-echo "VM '$vm' ready, listening on port $vm_port"
+echo "'$vm' ready"
 
 if [ -n "$command_file" ]; then
   echo "Command file '$command_file' given."
