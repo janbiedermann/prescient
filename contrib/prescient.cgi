@@ -129,7 +129,10 @@ else
                   else
                     circle 'darkgrey'
                   fi
-                  echo -n "&nbsp;|&nbsp;"
+                  if [ $i -ne $c ]; then
+                    echo -n "&nbsp;|"
+                  fi
+                  echo "&nbsp;"
                   i=$((i+2))
                 done
               else
