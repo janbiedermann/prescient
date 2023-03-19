@@ -58,6 +58,7 @@ else
               echo -n '<li>'
               
               unrel=0
+              ur_e=0
               errrs="`grep -o -i -E '[0-9]+ errors' ${rd_path} | cut -d' ' -f1`"
               fails="`grep -o -i -E '[0-9]+ failures' ${rd_path} | cut -d' ' -f1`"
               skips="`grep -o -i -E '[0-9]+ skips' ${rd_path} | cut -d' ' -f1`"
@@ -65,15 +66,16 @@ else
 
               if [ -z "$errrs" ]; then
                 errrs=0
-                unrel=1
+                ur_e=1
               fi
               if [ -z "$fails" ]; then
                 fails=0
-                unrel=0
+                if [ 1 -eq $ur_e ]; then
+                  unrel=1
+                fi
               fi
               if [ -z "$skips" ]; then
                 skips=0
-                unrel=1
               fi
               if [ -z "$pendg" ]; then
                 pendg=0
