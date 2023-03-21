@@ -56,6 +56,7 @@ This is true for most shells, also for PowerShell.
 - install [OpenSSH](https://github.com/PowerShell/Win32-OpenSSH)
 - make sure the host user can login via ssh using a password
 - PowerShell must be available in the path when executing commands via ssh
+- PowerShell must also be the [default shell](https://github.com/PowerShell/Win32-OpenSSH/wiki/DefaultShell) when logging in via ssh 
 - There may be problems with shutting down the machine, for a solution see [contrib/Add_Enable_forced_button...](/contrib/Add_Enable_forced_button-lid-shutdown_to_Power_Options.reg)
  
 #### Linux
