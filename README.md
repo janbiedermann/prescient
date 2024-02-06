@@ -1,4 +1,7 @@
-# pres**ci**ent
+<img src="https://raw.githubusercontent.com/janbiedermann/prescient/master/prescient.webp" alt="Prescient">
+<small>(Original Image by <a href="https://www.freepik.com/free-photo/fortune-teller-with-crystal-globe-front-view_35816174.htm">Freepik</a>)</small>
+
+# Pres**ci**ent
 
 A simple, reliable, *nixish (that also includes Windows/Cygwin) continuous integration for Git and VirtualBox in ~150 lines of sh.
 
@@ -12,7 +15,7 @@ A simple, reliable, *nixish (that also includes Windows/Cygwin) continuous integ
   
 ## System Requirements
 
-- VirtualBox 6.1 or greater on one or more *nixish hosts
+- VirtualBox 7.0 or greater on one or more *nixish hosts
 - Git on one or more *nixish hosts, acting as git server(s)
 - OpenSSH
 - sh, at, zip, unzip, ssh, sshpass, shuf, grep, awk, timeout
