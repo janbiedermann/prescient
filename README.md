@@ -160,7 +160,7 @@ remote: Enqueueing CI run for c4168a062696c632850efc8a19aaf38b9905e2c3 on 'linux
 ... git messages ...
 ```
 
-Job execution will timeout after one hour.
+Job execution will timeout after 12 hours.
 
 Example integration:
 
