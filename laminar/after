@@ -1,0 +1,9 @@
+#!/bin/sh
+running=`vboxmanage list runningvms | grep "_Prescient" | head -1 | awk '{print $1;}'`
+
+while [ -n "$running" ]; do
+  echo "\"$running\" still running ... powering off!"
+  vboxmanage controlvm "$running" poweroff 2>/dev/null
+  sleep 10
+  running=`vboxmanage list runningvms | grep "_Prescient" | head -1 | awk '{print $1;}'`
+done

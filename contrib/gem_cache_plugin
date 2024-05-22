@@ -17,10 +17,18 @@ start_vm() {
     vboxmanage startvm "$vm" --type=headless
     vboxmanage controlvm "$vm" natpf1 delete plugin_ssh 2>/dev/null
     vboxmanage controlvm "$vm" natpf1 "plugin_ssh,tcp,127.0.0.1,$vm_port,,22"
+    echo "\"$vm\" started with ssh port $vm_port"
     ready=''
-    while [ -z "$ready" ]; do
+    maxwait=150
+    while [ -z "$ready" ] && [ 0 -le $maxwait ]; do
       ready=`sleep 10; sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port 127.0.0.1 'echo started' 2>/dev/null`
+      maxwait=`expr $maxwait - 10`
     done
+    if [ 0 -ge $maxwait ]; then
+      echo "Starting VM \"${vm}\" timed out, exiting!"
+      vboxmanage controlvm "$vm" poweroff # ensure vm is not hanging
+      exit 1
+    fi
   fi
 }
 
@@ -37,13 +45,21 @@ stop_vm() {
   if [ "$started" = 'yes' ]; then
     echo "stopping $vm"
     vboxmanage controlvm "$vm" natpf1 delete plugin_ssh
-    vboxmanage controlvm "$vm" acpipowerbutton 2>&1 # call 3 times in a row because Windows
+    # try graceful poweroff
+    # call 3 times in a row because some operating systems require 3 button presses
     vboxmanage controlvm "$vm" acpipowerbutton 2>&1
     vboxmanage controlvm "$vm" acpipowerbutton 2>&1
-    running=`vboxmanage list runningvms | grep "$vm"`
-    while [ -n "$running" ]; do
+    vboxmanage controlvm "$vm" acpipowerbutton 2>&1
+    running=`vboxmanage list runningvms | grep "\"$vm\""`
+    maxwait=300
+    while [ -n "$running" ] && [ 0 -le $maxwait ]; do
       running=`sleep 10; vboxmanage list runningvms | grep "\"$vm\""`
+      maxwait=`expr $maxwait - 10`
     done
+    # force poweroff
+    if [ -n "$running" ]; then
+      vboxmanage controlvm "$vm" poweroff
+    fi
   fi
 }
 
@@ -70,7 +86,7 @@ else
     echo "Gem: $gem_spec"
     if [ -z "$installed_all" ]; then
       gem=`echo "$gem_spec" | awk '{print $1}'`
-      versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/,//g; s/(//g; s/)//g'`
+      versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/ruby//g; s/x86_64-linux//g; s/,//g; s/(//g; s/)//g'`
       installed_gem=`grep "^$gem " "$av_g"`
       for version in $versions; do
         has=`echo "$installed_gem" | grep -E "[( ]$version[,)]"`
