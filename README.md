@@ -164,10 +164,10 @@ Job execution will timeout after one hour.
 
 Example integration:
 
-[isomorfeus-speednode](https://github.com/isomorfeus/isomorfeus-speednode)
+[speednode](https://github.com/janbiedermann/speednode)
 
-- [`.prescient`](https://github.com/isomorfeus/isomorfeus-speednode/blob/master/.prescient)
-- [CI scripts](https://github.com/isomorfeus/isomorfeus-speednode/tree/master/ci)
+- [`.prescient`](https://github.com/janbiedermann/speednode/blob/master/.prescient)
+- [CI scripts](https://github.com/janbiedermann/speednode/tree/master/ci)
 
 ## Provisioning of VMs and Execution of Scripts
 
