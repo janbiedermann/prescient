@@ -61,15 +61,14 @@ Linux and Windows are supported. Choose either, when using Windows a Server vers
 #### When using Laminar
 
 Ensure sed is available.
-Ensure laminar can access the virtual machines. Easiest is to use the user configured for laminar for configureing the virtual machines too.
+Ensure laminar can access the virtual machines. Easiest is to use the user configured for laminar for configuring the virtual machines too.
 
 Copy `laminar/prescient.run*` to `/var/lib/laminar/cfg/jobs/` on the executing host, it will be linked to from post-receive.
 
 The configuration examples provided in the laminar dir can be used to operate several execution hosts with one context/executor/queue per host.
 
 When using the laminar host as executing host, ensure one executor and one context for executing the vms.
-To achieve this, `context.conf` with `context_local.env` can be used, both named accordingly following the laminar docs
-and your preferences.
+To achieve this, `context.conf` with `context_local.env` can be used, both named accordingly following the laminar docs and to your preferences.
 
 ### Virtual Machines on the Executing Hosts
 
