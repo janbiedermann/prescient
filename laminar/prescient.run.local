@@ -67,7 +67,7 @@ else
   echo "done."
   echo "CI run started at: `date`"
   timeout 12h sshpass -p "${vm_user_pass}" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "${vm_user}" -p ${port} 127.0.0.1 "cd \$HOME/tree; $exe" 2>&1 | tee ${cm}.log
-  x=`sed -e 's/\s0\serrors//ig' -e 's/\s0\sfailures//ig' ${cm}.log | grep -c -i 'error\|fail\|abort'`
+  x=`sed -e 's/\s0\serrors//ig' -e 's/\s0\sfailures//ig' ${cm}.log | grep -c -i '\serror\|\sfail\|\sabort'`
   echo
   echo "CI run with $x failures finished at: `date`"
   if [ -x "${HOME}/prescient/${vm}_plugin" ]; then
