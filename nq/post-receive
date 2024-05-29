@@ -96,6 +96,7 @@ while read oval commit ref; do
         # run exe
         echo "  echo \"CI run started at: \`date\`\" >~/.prescient/$cm.log_tmp" >> $script
         echo "  timeout 12h sshpass -p '$vm_user_pass' ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l '$vm_user' -p \$port 127.0.0.1 \"cd \\\$HOME/tree; \$exe\" 2>&1 | tr -d '\r' >>~/.prescient/$cm.log_tmp" >> $script
+        echo "  echo" >> $script
         echo "  echo \"CI run finished at: \`date\`\" >>~/.prescient/$cm.log_tmp" >> $script
         echo "  mv ~/.prescient/$cm.log_tmp ~/.prescient/$cm.log" >> $script
         # call plugin if it exists
