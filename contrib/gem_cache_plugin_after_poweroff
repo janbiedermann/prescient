@@ -1,0 +1,96 @@
+#!/bin/sh
+# this script supports Windows and Linux
+vm=$1
+vm_hostname=$2
+vm_port=$3
+vm_user=$4
+vm_user_pass=$5
+av_g="${HOME}/.prescient/${vm}_gems"
+wa_g="${HOME}/.prescient/${vm}_wanted_gems"
+win=''
+started='no'
+
+if [ ! -s "$wa_g" ]; then
+  echo "Wanted gems list not available, exiting."
+  exit 1
+fi
+
+start_vm() {
+  if [ "$started" != 'yes' ]; then
+    started='yes'
+    sudo vm start "$vm"
+    ready=''
+    maxwait=150
+    while [ -z "$ready" ] && [ 0 -le $maxwait ]; do
+      ready=`sleep 10; sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $vm_port ${vm_hostname} 'echo started' 2>/dev/null`
+      maxwait=`expr $maxwait - 10`
+    done
+    if [ 0 -ge $maxwait ]; then
+      echo "Starting VM \"${vm}\" timed out, exiting!"
+      sudo vm poweroff "$vm" # ensure vm is not hanging
+      exit 1
+    fi
+    win=`sshpass -p "${vm_user_pass}" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "${vm_user}" -p ${vm_port} ${vm_hostname} 'ls C:' 2>/dev/null | grep 'Directory: C:'`
+  fi
+}
+
+vm_available_gem_list() {
+  echo "Getting installed gems of '$vm'."
+  if [ -n "$win" ]; then
+    sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p ${vm_port} ${vm_hostname} "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$av_g"
+  else
+    sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p ${vm_port} ${vm_hostname} 'bash -l -c "gem list -l"' | tail -n +4 > "$av_g"
+  fi
+}
+
+stop_vm() {
+  if [ "$started" = 'yes' ]; then
+    echo "stopping $vm"
+    running='running'
+    maxwait=150
+    while [ -n "$running" ] && [ 0 -le $maxwait ]; do
+      echo -n '.'
+      running=`sleep 10; sudo vm info "${vm}" | grep 'state: running'`
+      maxwait=`expr $maxwait - 10`
+    done
+    if [ -n "$running" ]; then
+      sudo vm poweroff -f "${vm}"
+    fi
+  fi
+}
+
+if [ ! -s "$av_g" ]; then
+  start_vm
+  vm_available_gem_list
+fi
+
+if cmp -s "$av_g" "$wa_g"; then
+  echo "All wanted gems already installed."
+else
+  echo "Updating gems on '$vm'"
+  start_vm
+  while read -r gem_spec <&3; do
+    gem_spec=`echo $gem_spec`
+    installed_all=`grep "^$gem_spec" "$av_g"`
+    echo "Gem: $gem_spec"
+    if [ -z "$installed_all" ]; then
+      gem=`echo "$gem_spec" | awk '{print $1}'`
+      versions=`echo ${gem_spec/$gem} | sed 's/default://g; s/ruby//g; s/x86_64-linux//g; s/,//g; s/(//g; s/)//g'`
+      installed_gem=`grep "^$gem " "$av_g"`
+      for version in $versions; do
+        has=`echo "$installed_gem" | grep -E "[( ]$version[,)]"`
+        if [ -z "$has" ]; then
+          echo "Already installed: ${installed_gem}, Installing: ${gem} ${version}"
+          if [ -n "$win" ]; then
+            sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p ${vm_port} ${vm_hostname} "powershell -Command \"gem install -v $version $gem\""
+          else
+            sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p ${vm_port} ${vm_hostname} "bash -l -c \"gem install -v $version $gem\""
+          fi
+        fi
+      done
+    fi
+  done 3< "$wa_g"
+  vm_available_gem_list
+fi
+
+stop_vm

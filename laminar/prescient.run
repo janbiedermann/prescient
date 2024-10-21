@@ -1,0 +1,15 @@
+#!/bin/sh
+    machines=`grep -o -E "^[a-zA-Z0-9_-]+" "${tmp_dir}/tree/.prescient"` # security !!!
+    for machine in $machines; do
+      host=`echo $machine_line | awk -F'|' '{print $2}'`
+      user=`echo $machine_line | awk -F'|' '{print $3}'`
+      vm=`echo $machine_line | awk -F'|' '{print $4}'`
+      vm_hostname=`echo $machine_line | awk -F'|' '{print $5}'`
+      vm_port=`echo $machine_line | awk -F'|' '{print $6}'`
+      vm_user=`echo $machine_line | awk -F'|' '{print $7}'`
+      vm_user_pass=`echo $machine_line | awk -F'|' '{print $8}' | tr -d '\r'`
+if [ ${EXECUTING_HOST} = "local" ]; then
+  /var/lib/laminar/cfg/jobs/prescient.run.local "$machine" "$vm" "$vm_hostname" "$vm_port" "$vm_user" "$vm_user_pass" "$commit"
+else
+  ssh ${EXE_HOST_USER}@${EXECUTING_HOST} /var/lib/laminar/cfg/jobs/prescient.run.local "$machine" "$vm" "$vm_hostname" "$vm_port" "$vm_user" "$vm_user_pass" "$commit"
+fi

@@ -1,0 +1,32 @@
+#!/bin/sh
+. "/usr/local/etc/prescient_g2l.conf" # provides LAMINAR_HOST and LAMINAR_HOST_USER
+repo=${PWD##*/}
+while read oval commit ref; do
+  if [ '0000000000000000000000000000000000000000' = "$commit" ]; then continue; fi
+  # try to get .prescient from tree
+  tmp_dir=`mktemp -d /tmp/prescient-XXXXX`
+  mkdir "${tmp_dir}/tree"
+  git clone -q -n $GIT_DIR "${tmp_dir}/tree" >/dev/null 2>/dev/null
+  unset GIT_DIR
+  cd "${tmp_dir}/tree"
+  git checkout -q $commit >/dev/null 2>/dev/null
+  if [ ! -f "${tmp_dir}/tree/.prescient" ]; then
+    echo "No .prescient file found in tree of ${commit}, skipping CI."
+  else
+    # prepare repo
+    cd $tmp_dir
+    zip -1 -y -r -q "${tmp_dir}/tree.zip" tree
+    machines=`grep -o -E "^[a-zA-Z0-9_-]+" "${tmp_dir}/tree/.prescient"` # security !!!
+    for machine in $machines; do
+      ci_vm="${vm}_Prescient"
+      cm="${commit}_${machine}"
+      echo "Enqueueing CI run for $commit on '$machine'."
+      ssh ${LAMINAR_HOST_USER}@${LAMINAR_HOST} mkdir -p '$HOME/.prescient'
+      scp "${tmp_dir}/tree.zip" "${LAMINAR_HOST_USER}@${LAMINAR_HOST}:~/.prescient/$cm.zip"
+      ssh ${LAMINAR_HOST_USER}@${LAMINAR_HOST} ln -sf /var/db/laminar/cfg/jobs/prescient.run /var/db/laminar/cfg/jobs/${repo}.run
+      ssh ${LAMINAR_HOST_USER}@${LAMINAR_HOST} laminarc queue ${repo} machine="${machine}" commit="${commit}"
+      rm -rf $tmp_dir 2>/dev/null
+    done
+  fi
+done
+exit 0

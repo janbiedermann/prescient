@@ -1,0 +1,80 @@
+#!/bin/sh
+# laminarc prescient machine=... vm=... vm_hostname=... vm_port=... vm_user=... vm_user_pass=... commit=...
+machine=$1
+vm=$2
+vm_hostname=$3
+vm_port=$4
+vm_user=$5
+vm_user_pass=$6
+commit=$7
+ci_vm="${vm}_Prescient"
+cm="${commit}_${machine}"
+x=0
+state=`sudo vm info "${vm}" 2>/dev/null | grep 'state: '`
+if [ -z "$state" ]; then
+  echo "VM '${vm}' doesn't exist!"
+  exit 1
+fi
+if [ -n "`echo $state | grep running`" ]; then
+  echo "\"${vm}\" is running, can't create snapshot, exiting!"
+  exit 2
+fi
+echo "Creating vm snapshot"
+sudo vm snapshot "${vm}@PrescientBase"
+unzip -q -d "${HOME}/.prescient/${cm}" "${HOME}/.prescient/${cm}.zip" tree/.prescient
+exe=`grep "${machine}:" "${HOME}/.prescient/${cm}/tree/.prescient" | grep -o -E '[^a-zA-Z0-9_-]+[^:].*$' | grep -o -E '[^:].*'`
+sudo vm start "${vm}"
+started=''
+maxwait=150
+echo -n "Connecting to ${vm_hostname}:${vm_port} "
+while [ -z "$started" ] && [ 0 -le $maxwait ]; do
+  echo -n '.'
+  started=`sleep 10; sshpass -p "${vm_user_pass}" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "${vm_user}" -p ${vm_port} ${vm_hostname} 'echo started' 2>/dev/null`
+  maxwait=`expr $maxwait - 10`
+done
+if [ 0 -ge $maxwait ]; then
+  echo
+  echo "Starting VM \"${vm}\" timed out, exiting!"; x=1
+else
+  echo " connected"
+  echo -n "Copying repo to vm ... "
+  sshpass -p "${vm_user_pass}" scp -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P ${vm_port} ~/.prescient/${cm}.zip "${vm_user}@${vm_hostname}:~/"
+  echo "done."
+  echo -n "Unzipping repo ... "
+  win=`sshpass -p "${vm_user_pass}" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "${vm_user}" -p ${vm_port} ${vm_hostname} 'ls C:' 2>/dev/null | grep 'Directory: C:'`
+  if [ -n "$win" ]; then
+    sshpass -p "${vm_user_pass}" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "${vm_user}" -p ${port} ${vm_hostname} powershell -Command Expand-Archive -Path "\$HOME/${cm}.zip" -DestinationPath "\$HOME"
+  else
+    sshpass -p "${vm_user_pass}" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "${vm_user}" -p ${port} ${vm_hostname} unzip -q -d "\$HOME" "\$HOME/${cm}.zip"
+  fi
+  echo "done."
+  echo "CI run started at: `date`"
+  timeout 12h sshpass -p "${vm_user_pass}" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "${vm_user}" -p ${vm_port} ${vm_hostname} "cd \$HOME/tree; $exe" 2>&1 | tee ${cm}.log
+  x=`sed -e 's/\s0\serrors//ig' -e 's/\s0\sfailures//ig' ${cm}.log | grep -c -i '\serror\|\sfail\|\sabort'`
+  echo
+  echo "CI run with $x failures finished at: `date`"
+  if [ -x "${HOME}/prescient/${vm}_plugin_after_ci" ]; then
+    timeout 12h "${HOME}/prescient/${vm}_plugin_after_ci" "${vm}" "${vm_hostname}" "${vm_port}" "${vm_user}" "${vm_user_pass}"
+  fi
+fi
+echo -n "Poweroff "
+sudo vm stop "${vm}"
+running='running'
+maxwait=150
+while [ -n "$running" ] && [ 0 -le $maxwait ]; do
+  echo -n '.'
+  running=`sleep 10; sudo vm info "${vm}" | grep 'state: running'`
+  maxwait=`expr $maxwait - 10`
+done
+if [ -n "$running" ]; then
+  sudo vm poweroff -f "${vm}"
+fi
+echo
+echo "Rolling back to previous vm snapshot"
+sudo vm rollback "${vm}@PrescientBase"
+if [ -x "${HOME}/prescient/${vm}_plugin_after_poweroff" ]; then
+  timeout 12h "${HOME}/prescient/${vm}_plugin_after_poweroff" "${vm}" "${vm_hostname}" "${vm_port}" "${vm_user}" "${vm_user_pass}"
+fi
+# cleanup
+rm -rf $HOME/.prescient/${cm}*
+exit $x

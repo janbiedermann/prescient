@@ -1,7 +1,0 @@
-#!/bin/bash
-
-if [ ${EXECUTING_HOST} = "local" ]; then
-  /var/lib/laminar/cfg/jobs/prescient.run.local "$machine" "$vm" "$vm_user" "$vm_user_pass" "$commit"
-else
-  ssh ${EXE_HOST_USER}@${EXECUTING_HOST} /var/lib/laminar/cfg/jobs/prescient.run.local "$machine" "$vm" "$vm_user" "$vm_user_pass" "$commit"
-fi

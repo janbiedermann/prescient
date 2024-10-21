@@ -1,0 +1,15 @@
+#!/bin/sh
+vm=$1
+vm_hostname=$2
+vm_port=$3
+vm_user=$4
+vm_user_pass=$5
+wa_g="${HOME}/.prescient/${vm}_wanted_gems"
+win=`sshpass -p "${vm_user_pass}" ssh -n -o LogLevel=ERROR -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "${vm_user}" -p ${vm_port} ${vm_hostname} 'ls C:' 2>/dev/null | grep 'Directory: C:'`
+
+echo "Getting installed gems after CI run"
+if [ -n "$win" ]; then
+  sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port $vm_hostname "powershell -Command \"gem list -l\"" | tr -d '\r' | tail -n +4 > "$wa_g"
+else
+  sshpass -p "$vm_user_pass" ssh -n -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l "$vm_user" -p $ci_port $vm_hostname 'bash -l -c "gem list -l"' | tail -n +4 > "$wa_g"
+fi
